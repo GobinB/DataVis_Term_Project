@@ -18,15 +18,16 @@ def draw_figure(canvas, figure, loc=(0, 0)):
 
 def plot_data(file_location):
     df = pd.read_csv(file_location)
-    fig, axs = plt.subplots(4, 1, figsize=(6, 11))  # Adjust the size as needed
+    fig, axs = plt.subplots(2, 2, figsize=(17, 4))  # Adjust figure size as needed for the 2x2 layout
 
-    # Example: Plotting four different columns, modify as per your CSV structure
-    df.plot(x='Datetime (UTC)', y='Acc magnitude avg', ax=axs[0])
-    df.plot(x='Datetime (UTC)', y='Eda avg', ax=axs[1])
-    df.plot(x='Datetime (UTC)', y='Temp avg', ax=axs[2])
-    df.plot(x='Datetime (UTC)', y='Movement intensity', ax=axs[3])
+    # Plotting in the 2x2 grid
+    df.plot(x='Datetime (UTC)', y='Acc magnitude avg', ax=axs[0, 0])
+    df.plot(x='Datetime (UTC)', y='Eda avg', ax=axs[0, 1])
+    df.plot(x='Datetime (UTC)', y='Temp avg', ax=axs[1, 0])
+    df.plot(x='Datetime (UTC)', y='Movement intensity', ax=axs[1, 1])
 
     return fig
+
 
 def main():
     sg.theme('LightBlue2')
