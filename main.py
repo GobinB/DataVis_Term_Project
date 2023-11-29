@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+color1 = '#AAB6D3'
 def generate_file_location(date, option):
     base_directory = 'Dataset'
     # Remove hyphens from the date string
@@ -18,7 +19,17 @@ def draw_figure(canvas, figure, loc=(0, 0)):
 
 def plot_data(file_location):
     df = pd.read_csv(file_location)
-    fig, axs = plt.subplots(2, 2, figsize=(17, 4))  # Adjust figure size as needed for the 2x2 layout
+
+    # Set your desired background color
+    background_color = color1  # Example light blue color, adjust as needed
+
+    # Creating a 2x2 subplot configuration with a specific background color
+    fig, axs = plt.subplots(2, 2, figsize=(10, 8), facecolor=background_color)
+
+    # Setting the background color for each subplot
+    for ax in axs.flat:
+        ax.set_facecolor(background_color)
+        ax.tick_params(colors='black')  # Adjust the color of ticks if needed
 
     # Plotting in the 2x2 grid
     df.plot(x='Datetime (UTC)', y='Acc magnitude avg', ax=axs[0, 0])
