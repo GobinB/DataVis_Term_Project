@@ -12,6 +12,12 @@ import pytz
 
 mpl.use('TkAgg')
 
+# Global theme colors
+THEME_BACKGROUND = "#000000"  # Black
+THEME_FOREGROUND = "#FFA500"  # Orange
+
+clicked = []
+clicked2 = []
 
 class windows(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -22,25 +28,21 @@ class windows(tk.Tk):
         self.grid_rowconfigure(0, weight=1)
         width = 700
         height = 700
-        # creating a frame and assigning it to container
 
         screenWidth = self.winfo_screenwidth()
         screenHeight = self.winfo_screenheight()
         align = '%dx%d+%d+%d' % (width, height, (screenWidth - width) / 2, (screenHeight - height) / 2)
         self.geometry(align)
-        #
+        
         container = tk.Frame(self)
         self.configure(background="#c7d6ed")
-
         container.grid(row=0, column=0)
 
         # We will now create a dictionary of frames
         self.frames = {}
-        # we'll create the frames themselves later but let's add the components to the dictionary.
+
         for F in (MainScreen, Paricipant, SelectDataAttributes, ShowGraph):
             frame = F(container, self)
-
-            # the windows class acts as the root window for the frames.
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
             frame.configure(background="#c7d6ed")
@@ -50,42 +52,34 @@ class windows(tk.Tk):
 
     def show_frame(self, cont):
         frame = self.frames[cont]
-        # raises the current frame to the top
         frame.tkraise()
 
 
 class MainScreen(tk.Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        tk.Frame.__init__(self, parent, background=THEME_BACKGROUND)
 
-        label = tk.Label(self, text="Data Visualization\n Press Start To Begin")
+        label = tk.Label(self, text="Data Visualization\nPress Start To Begin", bg=THEME_BACKGROUND, fg=THEME_FOREGROUND)
         ft1 = tkFont.Font(family='Times', size=32)
         label["font"] = ft1
         label["justify"] = "center"
-        # label.place(x=50,y=50,width=515,height=147)
         label.pack(padx=100, pady=50)
-        # label.pack()
 
-        # We use the switch_window_button in order to call the show_frame() method as a lambda function
         StartButton = tk.Button(
             self,
             text="Start",
+            bg=THEME_BACKGROUND, 
+            fg=THEME_FOREGROUND, 
+            activebackground=THEME_FOREGROUND,
             command=lambda: controller.show_frame(Paricipant),
         )
-        StartButton["activebackground"] = "#00ced1"
-        StartButton["bg"] = "#00ced1"
+        StartButton["activebackground"] = "#00ced1"  
         ft2 = tkFont.Font(family='Times', size=20)
         StartButton["font"] = ft2
-        StartButton["fg"] = "#393d49"
         StartButton["justify"] = "center"
         StartButton["text"] = "Start"
         StartButton["relief"] = "ridge"
         StartButton.pack()
-
-
-clicked = []
-clicked2 = []
-
 
 class Paricipant(tk.Frame):
 
@@ -148,19 +142,19 @@ class Paricipant(tk.Frame):
         self.participant312["justify"] = "center"
         self.participant312["relief"] = "ridge"
 
-        self.Jan18_2020 = tk.Button(self.frame1, text="2020-01-18")
+        self.Jan18_2020 = tk.Button(self.frame1, text="2020-01-18", bg=THEME_BACKGROUND, fg=THEME_FOREGROUND, activebackground=THEME_FOREGROUND)
         self.Jan18_2020.config(command=lambda btn=self.Jan18_2020: self.showall(btn))
         self.Jan18_2020.grid(row=1, column=1, padx=10, pady=5)
 
-        self.Jan19_2020 = tk.Button(self.frame1, text="2020-01-19")
+        self.Jan19_2020 = tk.Button(self.frame1, text="2020-01-19", bg=THEME_BACKGROUND, fg=THEME_FOREGROUND, activebackground=THEME_FOREGROUND)
         self.Jan19_2020.config(command=lambda btn=self.Jan19_2020: self.showall(btn))
         self.Jan19_2020.grid(row=2, column=1, padx=10, pady=5)
 
-        self.Jan20_2020 = tk.Button(self.frame1, text="2020-01-20")
+        self.Jan20_2020 = tk.Button(self.frame1, text="2020-01-20", bg=THEME_BACKGROUND, fg=THEME_FOREGROUND, activebackground=THEME_FOREGROUND)
         self.Jan20_2020.config(command=lambda btn=self.Jan20_2020: self.parts(btn))
         self.Jan20_2020.grid(row=3, column=1, padx=10, pady=5)
 
-        self.Jan21_2020 = tk.Button(self.frame1, text="2020-01-21")
+        self.Jan21_2020 = tk.Button(self.frame1, text="2020-01-21", bg=THEME_BACKGROUND, fg=THEME_FOREGROUND, activebackground=THEME_FOREGROUND)
         self.Jan21_2020.config(command=lambda btn=self.Jan21_2020: self.parts(btn))
         self.Jan21_2020.grid(row=4, column=1, padx=10, pady=5)
         self.Jan21_2020["activebackground"] = "#00ced1"
@@ -277,17 +271,13 @@ class Paricipant(tk.Frame):
             file = open("Dataset/" + "20200118" + "/" + "310" + "/summary.csv")
         return file
 
-        # return(file)
-
-
-#        print("".join(date_t),"".join(participant))
 
 
 class SelectDataAttributes(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        frame1 = Frame(self, highlightbackground="blue", highlightthickness=2)
+        frame1 = Frame(self, highlightbackground=THEME_FOREGROUND, highlightthickness=2)
         frame1.grid(padx=10, pady=50, row=0, column=0)  # pack(side=LEFT,fill=Y)
         label1 = tk.Label(frame1, text="Select Attribute(s)")
         ft1 = tkFont.Font(family='Times', size=14)
@@ -433,11 +423,6 @@ class SelectDataAttributes(tk.Frame):
         rest_input = tk.Text(frame1, height=2, width=20)
         rest_input.grid(padx=10, pady=5, row=6, column=2, columnspan=4)
 
-        # Rest = tk.Button(
-        #     frame1,
-        #     text="Rest",
-        #     # command=lambda: controller.show_frame(Paricipant),
-        # )
 
         convertTime = tk.Button(
             frame1,
@@ -505,11 +490,8 @@ class ShowGraph(tk.Frame):
         global clicked
         global local_time
 
-        # self.filename
-        # global file
+ 
         print("been here:", clicked)
-
-        # print(file)
 
         redo1 = tk.Button(
             self,
