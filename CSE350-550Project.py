@@ -31,12 +31,8 @@ class windows(tk.Tk):
         #
         container = tk.Frame(self)
         self.configure(background="#c7d6ed")
-        # specifying the region where the frame is packed in root
-        # container.pack(side="top", fill="both", expand=True)
+
         container.grid(row=0, column=0)
-        # configuring the location of the container using grid
-        # container.grid_rowconfigure(0, weight=1)
-        # container.grid_columnconfigure(0, weight=1)
 
         # We will now create a dictionary of frames
         self.frames = {}
@@ -62,7 +58,7 @@ class MainScreen(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
 
-        label = tk.Label(self, text="Welcome\nPlease Press the Button to\nStart Data Visualization")
+        label = tk.Label(self, text="Data Visualization\n Press Start To Begin")
         ft1 = tkFont.Font(family='Times', size=32)
         label["font"] = ft1
         label["justify"] = "center"
@@ -76,7 +72,7 @@ class MainScreen(tk.Frame):
             text="Start",
             command=lambda: controller.show_frame(Paricipant),
         )
-        StartButton["activebackground"] = "#00ced1"
+        StartButton["activebackground"] = "#black"
         StartButton["bg"] = "#00ced1"
         ft2 = tkFont.Font(family='Times', size=20)
         StartButton["font"] = ft2
@@ -84,8 +80,6 @@ class MainScreen(tk.Frame):
         StartButton["justify"] = "center"
         StartButton["text"] = "Start"
         StartButton["relief"] = "ridge"
-        # StartButton.place(x=140,y=260,width=310,height=342)
-        # StartButton.pack(side="bottom", fill=tk.X)
         StartButton.pack()
 
 
@@ -99,10 +93,7 @@ class Paricipant(tk.Frame):
         tk.Frame.__init__(self, parent)
         global clicked
         global clicked2
-        # self.dates1()
-        # clicked=[]
-        # clicked2=[]
-        # self.showff()
+
         print("data is : ", clicked)
         self.tclicked = ''
         SelectAttriutesPage = tk.Button(
@@ -535,21 +526,7 @@ class ShowGraph(tk.Frame):
         redo1["relief"] = "ridge"
         redo1.pack(side=BOTTOM, fill="x")  # .grid(row= 7,column=0,padx=1, pady=1, sticky=EW, columnspan=6)
 
-        # convertTime = tk.Button(
-        #     self,
-        #     text="Show Data",
-        #     command=update_button_value
-        # )
-        # convertTime["activebackground"] = "#9b60ad"
-        # convertTime["bg"] = "#c71585"
-        # ft3 = tkFont.Font(family='Times', size=20)
-        # convertTime["font"] = ft3
-        # convertTime["fg"] = "#393d49"
-        # convertTime["justify"] = "center"
-        # convertTime["text"] = "Convert Time"
-        # convertTime["relief"] = "ridge"
-        # convertTime.pack(side=BOTTOM, fill="x")  # .grid(row= 7,column=0,padx=1, pady=1, sticky=EW, columnspan=6)
-
+   
     def showit(self):
         
         global filename
@@ -691,12 +668,6 @@ class ShowGraph(tk.Frame):
         bnt["relief"] = "ridge"
         bnt.pack(side=TOP)  # .grid(row=0,column=0,sticky=NE)
         # pack(side=BOTTOM, fill='both', expand=True)
-
-    # canvas.draw()
-
-    # toolbar = NavigationToolbar2Tk(canvas, self)
-    # toolbar.update()
-    # canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
 
     # Convert an input zulu (UTC) time string into something more readable. Returning it:
     # Didn't end up using this, but it may be helpful?
