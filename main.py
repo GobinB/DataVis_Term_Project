@@ -20,16 +20,13 @@ def draw_figure(canvas, figure, loc=(0, 0)):
 def plot_data(file_location):
     df = pd.read_csv(file_location)
 
-    # Set your desired background color
-    background_color = color1  # Example light blue color, adjust as needed
+    background_color = color1  
 
-    # Creating a 2x2 subplot configuration with a specific background color
-    fig, axs = plt.subplots(2, 2, figsize=(10, 8), facecolor=background_color)
+    fig, axs = plt.subplots(2, 2, figsize=(14, 4), facecolor=background_color)
 
-    # Setting the background color for each subplot
     for ax in axs.flat:
         ax.set_facecolor(background_color)
-        ax.tick_params(colors='black')  # Adjust the color of ticks if needed
+        ax.tick_params(colors='black')  
 
     # Plotting in the 2x2 grid
     df.plot(x='Datetime (UTC)', y='Acc magnitude avg', ax=axs[0, 0])
