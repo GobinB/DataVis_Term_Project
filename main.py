@@ -11,7 +11,10 @@ def generate_file_location(date, option):
     file_location = f"{base_directory}/{formatted_date}/{option}/summary.csv"
     return file_location
 
-def draw_figure(canvas, figure, loc=(0, 0)):
+def draw_figure(canvas, figure, loc=(0, 0), figure_canvas_agg=None):
+    if figure_canvas_agg is not None:
+        # This will destroy the old canvas
+        figure_canvas_agg.get_tk_widget().forget()
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
     figure_canvas_agg.draw()
     figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
@@ -43,8 +46,8 @@ def main():
     layout = [
         [sg.Text('Welcome')],
         [
-            sg.Combo(['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21'], key='-DATE-', default_value='2020-01-18'),
-            sg.Combo(['310', '311', '312'], key='-OPTION-', default_value='310')
+            sg.Combo(['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21'], key='-DATE-', default_value='2020-01-18', enable_events=True),
+            sg.Combo(['310', '311', '312'], key='-OPTION-', default_value='310', enable_events=True)
         ],
         [sg.Button('Select Data Attributes')],
         [sg.Button('Show Graph')],
@@ -52,21 +55,30 @@ def main():
     ]
 
     window = sg.Window('Data Analysis App', layout)
+    
+    fig_agg = None
 
     while True:
         event, values = window.read()
+
         if event == sg.WINDOW_CLOSED:
             break
-        elif event == 'Show Graph':
+
+        if event in ('-DATE-', '-OPTION-', 'Show Graph'):
+            if fig_agg:
+                # This ensures previous graph is removed before drawing a new one
+                fig_agg.get_tk_widget().destroy()
+                fig_agg = None
+
             selected_date = values['-DATE-']
             selected_option = values['-OPTION-']
             file_location = generate_file_location(selected_date, selected_option)
 
-            # Plotting data
             fig = plot_data(file_location)
             fig_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
     window.close()
+
 
 if __name__ == '__main__':
     main()
