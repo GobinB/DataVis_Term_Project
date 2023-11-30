@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from pandas.tseries.offsets import DateOffset
-import matplotlib.dates as mdates
-import pytz
 
 mpl.use('TkAgg')
 
@@ -63,7 +61,7 @@ class MainScreen(tk.Frame):
         ft1 = tkFont.Font(family='Times', size=32)
         label["font"] = ft1
         label["justify"] = "center"
-        label.pack(padx=100, pady=50)
+        label.pack(padx=200, pady=100)
 
         StartButton = tk.Button(
             self,
@@ -98,7 +96,6 @@ class Paricipant(tk.Frame):
         SelectAttriutesPage["bg"] = "#c71585"
         ft8 = tkFont.Font(family='Times', size=20)
         SelectAttriutesPage["font"] = ft8
-        # SelectAttriutesPage["fg"] = "#3S93d49"
         SelectAttriutesPage["justify"] = "center"
         SelectAttriutesPage["text"] = "Select Data Attributes"
         SelectAttriutesPage["relief"] = "ridge"
@@ -197,8 +194,7 @@ class Paricipant(tk.Frame):
         widget1.grid(row=1, column=2, padx=10, pady=5)
         widget2.grid(row=3, column=2, padx=10, pady=5)
 
-    # def exist(self,widget):
-    #     print("Checking for existence = ", bool(widget.winfo_exists()))
+    
     def parts(self, btn):
         global clicked
         global clicked
@@ -211,7 +207,6 @@ class Paricipant(tk.Frame):
         if (text == "20200120" or text == "20200121"):
             self.display2(self.participant310, self.participant312)
         if (bool(self.participant311.winfo_exists()) == True):
-            # print("removing 311")
             self.remove(self.participant311)
 
     def showall(self, btn):
@@ -262,10 +257,10 @@ class Paricipant(tk.Frame):
         de = "".join(date_t)
         pe = "".join(participant)
         de1 = ("r'/", de)
-        # file = open("Dataset/"+de+"/"+pe+"/summary.csv")
+        
         if (clicked and clicked2):
             file = open("Dataset/" + "".join(clicked) + "/" + "".join(clicked2) + "/summary.csv")
-            # df = pd.read_csv('Dataset/20200121/310/summary.csv', skiprows=[1])
+           
 
         else:
             file = open("Dataset/" + "20200118" + "/" + "310" + "/summary.csv")
