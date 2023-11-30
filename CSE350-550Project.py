@@ -72,7 +72,7 @@ class MainScreen(tk.Frame):
             text="Start",
             command=lambda: controller.show_frame(Paricipant),
         )
-        StartButton["activebackground"] = "#black"
+        StartButton["activebackground"] = "#00ced1"
         StartButton["bg"] = "#00ced1"
         ft2 = tkFont.Font(family='Times', size=20)
         StartButton["font"] = ft2
