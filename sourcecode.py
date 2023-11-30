@@ -1,7 +1,6 @@
 import datetime as dt
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import *
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -39,7 +38,7 @@ class windows(tk.Tk):
         # We will now create a dictionary of frames
         self.frames = {}
 
-        for F in (MainScreen, Paricipant, SelectDataAttributes, ShowGraph):
+        for F in (MainScreen, Participant, SelectDataAttributes, ShowGraph):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -69,7 +68,7 @@ class MainScreen(tk.Frame):
             bg=THEME_BACKGROUND, 
             fg=THEME_FOREGROUND, 
             activebackground=THEME_FOREGROUND,
-            command=lambda: controller.show_frame(Paricipant),
+            command=lambda: controller.show_frame(Participant),
         )
         StartButton["activebackground"] = "#00ced1"  
         ft2 = tkFont.Font(family='Times', size=20)
@@ -79,7 +78,7 @@ class MainScreen(tk.Frame):
         StartButton["relief"] = "ridge"
         StartButton.pack()
 
-class Paricipant(tk.Frame):
+class Participant(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -247,7 +246,6 @@ class Paricipant(tk.Frame):
         global clicked
         global clicked2
         global file
-        # c,c2 = Paricipant.ttfd()
         clicked = clicked
         clicked2 = clicked2
         # Participaclicked
