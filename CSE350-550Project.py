@@ -7,11 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from pandas.tseries.offsets import DateOffset
-
 import matplotlib.dates as mdates
-
-import matplotlib.pyplot as plt
-from datetime import datetime
 import pytz
 
 mpl.use('TkAgg')
@@ -714,9 +710,5 @@ class ShowGraph(tk.Frame):
 if __name__ == "__main__":
     testObj = windows()
 
-    # testObj.geometry("1200x1200")
-    #     testObj.rowconfigure(0, weight=1)
-    #     testObj.columnconfigure(0, weight=1)
-    # =======
-    # testObj.geometry("1200x1200")
+
     testObj.mainloop()
