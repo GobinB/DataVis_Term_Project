@@ -178,6 +178,9 @@ def main():
     layout = [
         [sg.Text('Welcome')],
         [
+            sg.Checkbox('Enable Date Range', key='-ENABLERANGE-', enable_events=True),
+        ],
+        [
             sg.Text('Select Date:'),
             sg.Combo(date_combobox_choices, key='-DATE-', default_value='None'),
             sg.Text('Or Select Date Range:'),
@@ -213,6 +216,14 @@ def main():
         event, values = window.read()
         if event == sg.WINDOW_CLOSED:
             break
+
+        if event == '-ENABLERANGE-':
+            enable_range = values['-ENABLERANGE-']
+            window['-STARTDATE-'].update(disabled=not enable_range)
+            window['-STARTDATE-BTN-'].update(disabled=not enable_range)
+            window['-ENDDATE-'].update(disabled=not enable_range)
+            window['-ENDDATE-BTN-'].update(disabled=not enable_range)
+            window['-DATE-'].update(disabled=enable_range)
 
         if event == 'Show Graph':
             selected_date = values['-DATE-']
