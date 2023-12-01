@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as mdates
 import numpy as np
+import math
+from tkinter import ttk  
+
 
 # Constants
 BASE_DIRECTORY = 'Dataset'
@@ -32,9 +35,43 @@ def draw_figure(canvas, figure, loc=(0, 0)):
     if hasattr(canvas, 'figure_agg'):
         canvas.figure_agg.get_tk_widget().forget()
         plt.close(canvas.figure_agg.figure)
+        # Remove the old scrollbar
+        for child in canvas.winfo_children():
+            if isinstance(child, ttk.Scrollbar):
+                child.destroy()
+
+    # Create a FigureCanvasTkAgg object
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
     figure_canvas_agg.draw()
+def draw_figure(canvas, figure, loc=(0, 0)):
+    if hasattr(canvas, 'figure_agg'):
+        canvas.figure_agg.get_tk_widget().forget()
+        plt.close(canvas.figure_agg.figure)
+        # Remove the old scrollbars
+        for child in canvas.winfo_children():
+            if isinstance(child, ttk.Scrollbar):
+                child.destroy()
+
+    # Create a FigureCanvasTkAgg object
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+
+    # Pack the FigureCanvasTkAgg widget to fill both the X and Y axes
     figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+
+    # Create vertical scrollbar and attach it to the canvas
+    vscrollbar = ttk.Scrollbar(canvas, orient='vertical', command=canvas.yview)
+    vscrollbar.pack(side='right', fill='y')
+    canvas.configure(yscrollcommand=vscrollbar.set)
+
+    # Create horizontal scrollbar and attach it to the canvas
+    hscrollbar = ttk.Scrollbar(canvas, orient='horizontal', command=canvas.xview)
+    hscrollbar.pack(side='bottom', fill='x')
+    canvas.configure(xscrollcommand=hscrollbar.set)
+
+    # Set the canvas scrolling region
+    canvas.config(scrollregion=canvas.bbox("all"))
+
     canvas.figure_agg = figure_canvas_agg
 
 def plot_data(file_location, columns, chart_type, timezone):
@@ -55,24 +92,38 @@ def plot_data(file_location, columns, chart_type, timezone):
     if num_attributes == 0:
         return None  # No attributes selected, so no plot to create
 
-    fig, axs = plt.subplots(num_attributes, 1, figsize=(15, 3 * num_attributes), sharex=True)
+    # Calculate the number of rows and columns for the subplots
+    num_rows = int(math.ceil(num_attributes / 2))
+    num_cols = min(2, num_attributes)
+
+    fig, axs = plt.subplots(num_attributes, 1, figsize=(15, 3 * num_rows), sharex=True)
 
     if num_attributes == 1:
-        axs = [axs]  # Make sure axs is always a list, even for a single subplot
+        axs = np.array([axs])  # Make sure axs is always a numpy array, even for a single subplot
 
-    for ax, (attr, is_checked) in zip(axs, attributes_to_plot):
+    current_subplot = 0  # Track the current subplot index
+
+    for i, (attr, is_checked) in enumerate(attributes_to_plot):
         if is_checked:
+            ax = axs[current_subplot]
+            current_subplot += 1
+
             if chart_type == 'plot':
                 ax.plot(df['Datetime (UTC)'], df[attr], label=attr)
             elif chart_type == 'scatter':
                 ax.scatter(df['Datetime (UTC)'], df[attr], label=attr)
             elif chart_type == 'bar':
                 ax.bar(df['Datetime (UTC)'], df[attr], label=attr)
+
             ax.set_ylabel(attr)
             ax.legend()
 
     for ax in axs:
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
+
+    # Remove unused subplots
+    for i in range(current_subplot, num_attributes):
+        fig.delaxes(axs[i])
 
     fig.tight_layout()
     return fig
