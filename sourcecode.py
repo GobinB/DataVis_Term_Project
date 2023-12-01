@@ -1,11 +1,14 @@
 import datetime as dt
 import tkinter as tk
 import tkinter.font as tkFont
+from tkinter import *
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from pandas.tseries.offsets import DateOffset
+import matplotlib.dates as mdates
+import pytz
 
 mpl.use('TkAgg')
 
@@ -38,7 +41,7 @@ class windows(tk.Tk):
         # We will now create a dictionary of frames
         self.frames = {}
 
-        for F in (MainScreen, Participant, SelectDataAttributes, ShowGraph):
+        for F in (MainScreen, Paricipant, SelectDataAttributes, ShowGraph):
             frame = F(container, self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -60,7 +63,7 @@ class MainScreen(tk.Frame):
         ft1 = tkFont.Font(family='Times', size=32)
         label["font"] = ft1
         label["justify"] = "center"
-        label.pack(padx=200, pady=100)
+        label.pack(padx=100, pady=50)
 
         StartButton = tk.Button(
             self,
@@ -68,7 +71,7 @@ class MainScreen(tk.Frame):
             bg=THEME_BACKGROUND, 
             fg=THEME_FOREGROUND, 
             activebackground=THEME_FOREGROUND,
-            command=lambda: controller.show_frame(Participant),
+            command=lambda: controller.show_frame(Paricipant),
         )
         StartButton["activebackground"] = "#00ced1"  
         ft2 = tkFont.Font(family='Times', size=20)
@@ -78,7 +81,7 @@ class MainScreen(tk.Frame):
         StartButton["relief"] = "ridge"
         StartButton.pack()
 
-class Participant(tk.Frame):
+class Paricipant(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -95,6 +98,7 @@ class Participant(tk.Frame):
         SelectAttriutesPage["bg"] = "#c71585"
         ft8 = tkFont.Font(family='Times', size=20)
         SelectAttriutesPage["font"] = ft8
+        # SelectAttriutesPage["fg"] = "#3S93d49"
         SelectAttriutesPage["justify"] = "center"
         SelectAttriutesPage["text"] = "Select Data Attributes"
         SelectAttriutesPage["relief"] = "ridge"
@@ -193,7 +197,8 @@ class Participant(tk.Frame):
         widget1.grid(row=1, column=2, padx=10, pady=5)
         widget2.grid(row=3, column=2, padx=10, pady=5)
 
-    
+    # def exist(self,widget):
+    #     print("Checking for existence = ", bool(widget.winfo_exists()))
     def parts(self, btn):
         global clicked
         global clicked
@@ -206,6 +211,7 @@ class Participant(tk.Frame):
         if (text == "20200120" or text == "20200121"):
             self.display2(self.participant310, self.participant312)
         if (bool(self.participant311.winfo_exists()) == True):
+            # print("removing 311")
             self.remove(self.participant311)
 
     def showall(self, btn):
@@ -246,6 +252,7 @@ class Participant(tk.Frame):
         global clicked
         global clicked2
         global file
+        # c,c2 = Paricipant.ttfd()
         clicked = clicked
         clicked2 = clicked2
         # Participaclicked
@@ -255,10 +262,10 @@ class Participant(tk.Frame):
         de = "".join(date_t)
         pe = "".join(participant)
         de1 = ("r'/", de)
-        
+        # file = open("Dataset/"+de+"/"+pe+"/summary.csv")
         if (clicked and clicked2):
             file = open("Dataset/" + "".join(clicked) + "/" + "".join(clicked2) + "/summary.csv")
-           
+            # df = pd.read_csv('Dataset/20200121/310/summary.csv', skiprows=[1])
 
         else:
             file = open("Dataset/" + "20200118" + "/" + "310" + "/summary.csv")
@@ -278,35 +285,167 @@ class SelectDataAttributes(tk.Frame):
         label1["justify"] = "center"
         label1.grid(padx=10, pady=5, row=0, column=0)
 
+        label2 = tk.Label(frame1, text="Query Operator(s)")
+        ft1 = tkFont.Font(family='Times', size=14)
+        label2["font"] = ft1
+        label2["justify"] = "center"
+        label2.grid(padx=10, pady=5, row=0, column=1)
 
-        # Create a dictionary to hold the BooleanVars for each attribute
-        self.attribute_vars = {
-            "Acc Magnitude Avg": tk.BooleanVar(),
-            "Eda Avg": tk.BooleanVar(),
-            "Temp Avg": tk.BooleanVar(),
-            "Movement intensity": tk.BooleanVar(),
-            "Step Count": tk.BooleanVar(),
-            "Rest": tk.BooleanVar(),
-            "On Wrist": tk.BooleanVar(),
-            # Add more attributes here if needed
-        }
+        label3 = tk.Label(frame1, text="Input(s)")
+        ft1 = tkFont.Font(family='Times', size=14)
+        label3["font"] = ft1
+        label3["justify"] = "center"
+        label3.grid(padx=10, pady=5, row=0, column=2)
 
-        # Create the checkboxes for the attributes
-        row_offset = 1
-        for attribute, var in self.attribute_vars.items():
-            tk.Checkbutton(
-                frame1,
-                text=attribute,
-                variable=var,
-                onvalue=True,
-                offvalue=False
-            ).grid(padx=10, pady=5, row=row_offset, column=0)
-            row_offset += 1
+        MagnitudeAvg = tk.Button(
+            frame1,
+            text="Acc Magnitude Avg",
+            #   command=lambda: controller.show_frame(Paricipant),
+        )
+        MagnitudeAvg["activebackground"] = "#1e90ff"
+        MagnitudeAvg["bg"] = "#00ced1"
+        ft3 = tkFont.Font(family='Times', size=20)
+        MagnitudeAvg["font"] = ft3
+        MagnitudeAvg["fg"] = "#393d49"
+        MagnitudeAvg["justify"] = "center"
+        MagnitudeAvg["text"] = "Acc Magnitude Avg"
+        MagnitudeAvg["relief"] = "ridge"
+        MagnitudeAvg.grid(padx=10, pady=5, row=1, column=0)
+
+        mag_avg_operators = OptionMenu(frame1, StringVar(), "Null", ">", ">", "=")
+        mag_avg_operators.grid(padx=10, pady=5, row=1, column=1)
+
+        mag_avg_input = tk.Text(frame1, height=2, width=20)
+        mag_avg_input.grid(padx=10, pady=5, row=1, column=2)
+
+        EdaAvg = tk.Button(
+            frame1,
+            text="Eda Avg",
+            #    command=lambda: controller.show_frame(Paricipant),
+        )
+        EdaAvg["activebackground"] = "#1e90ff"
+        EdaAvg["bg"] = "#00ced1"
+        ft3 = tkFont.Font(family='Times', size=20)
+        EdaAvg["font"] = ft3
+        EdaAvg["fg"] = "#393d49"
+        EdaAvg["justify"] = "center"
+        EdaAvg["text"] = "Eda Avg"
+        EdaAvg["relief"] = "ridge"
+        EdaAvg.grid(padx=10, pady=5, row=2, column=0)
+
+        eda_avg_operators = OptionMenu(frame1, StringVar(), "Null", ">", ">", "=")
+        eda_avg_operators.grid(padx=10, pady=5, row=2, column=1)
+
+        eda_avg_input = tk.Text(frame1, height=2, width=20)
+        eda_avg_input.grid(padx=10, pady=5, row=2, column=2)
+
+        TempAvg = tk.Button(
+            frame1,
+            text="Temp Avg",
+            #   command=lambda: controller.show_frame(Paricipant),
+        )
+        TempAvg["activebackground"] = "#1e90ff"
+        TempAvg["bg"] = "#00ced1"
+        ft3 = tkFont.Font(family='Times', size=20)
+        TempAvg["font"] = ft3
+        TempAvg["fg"] = "#393d49"
+        TempAvg["justify"] = "center"
+        TempAvg["text"] = "Temp Avg"
+        TempAvg["relief"] = "ridge"
+        TempAvg.grid(padx=10, pady=5, row=3, column=0)
+
+        temp_avg_operators = OptionMenu(frame1, StringVar(), "Null", ">", ">", "=")
+        temp_avg_operators.grid(padx=10, pady=5, row=3, column=1)
+
+        temp_avg_input = tk.Text(frame1, height=2, width=20)
+        temp_avg_input.grid(padx=10, pady=5, row=3, column=2)
+
+        Movement = tk.Button(
+            frame1,
+            text="Movement",
+            #   command=lambda: controller.show_frame(Paricipant),
+        )
+        Movement["activebackground"] = "#1e90ff"
+        Movement["bg"] = "#00ced1"
+        ft3 = tkFont.Font(family='Times', size=20)
+        Movement["font"] = ft3
+        Movement["fg"] = "#393d49"
+        Movement["justify"] = "center"
+        Movement["text"] = "Movement"
+        Movement["relief"] = "ridge"
+        Movement.grid(padx=10, pady=5, row=4, column=0)
+
+        movement_operators = OptionMenu(frame1, StringVar(), "Null", ">", ">", "=")
+        movement_operators.grid(padx=10, pady=5, row=4, column=1)
+
+        movement_input = tk.Text(frame1, height=2, width=20)
+        movement_input.grid(padx=10, pady=5, row=4, column=2)
+
+        StepCount = tk.Button(
+            frame1,
+            text="Step Count",
+            #   command=lambda: controller.show_frame(Paricipant),
+        )
+        StepCount["activebackground"] = "#1e90ff"
+        StepCount["bg"] = "#00ced1"
+        ft3 = tkFont.Font(family='Times', size=20)
+        StepCount["font"] = ft3
+        StepCount["fg"] = "#393d49"
+        StepCount["justify"] = "center"
+        StepCount["text"] = "Step Count"
+        StepCount["relief"] = "ridge"
+        StepCount.grid(padx=10, pady=5, row=5, column=0)
+
+        step_operators = OptionMenu(frame1, StringVar(), "Null", ">", ">", "=")
+        step_operators.grid(padx=10, pady=5, row=5, column=1)
+
+        step_input = tk.Text(frame1, height=2, width=20)
+        step_input.grid(padx=10, pady=5, row=5, column=2)
+
+        Rest = tk.Button(
+            frame1,
+            text="Rest",
+            # command=lambda: controller.show_frame(Paricipant),
+        )
+        Rest["activebackground"] = "#1e90ff"
+        Rest["bg"] = "#00ced1"
+        ft3 = tkFont.Font(family='Times', size=20)
+        Rest["font"] = ft3
+        Rest["fg"] = "#393d49"
+        Rest["justify"] = "center"
+        Rest["text"] = "Rest"
+        Rest["relief"] = "ridge"
+        Rest.grid(padx=10, pady=5, row=6, column=0)
+
+        rest_operators = OptionMenu(frame1, StringVar(), "Null", ">", ">", "=")
+        rest_operators.grid(padx=10, pady=5, row=6, column=1)
+
+        rest_input = tk.Text(frame1, height=2, width=20)
+        rest_input.grid(padx=10, pady=5, row=6, column=2, columnspan=4)
+
+
+        convertTime = tk.Button(
+            frame1,
+            text="Local Time",
+            command=update_button_value
+        )
+
+        convertTime["activebackground"] = "#1e90ff"
+        convertTime["bg"] = "#00ced1"
+        ft3 = tkFont.Font(family='Times', size=20)
+        convertTime["font"] = ft3
+        convertTime["fg"] = "#393d49"
+        convertTime["justify"] = "center"
+        convertTime["text"] = "Local Time"
+        convertTime["relief"] = "ridge"
+        convertTime.grid(padx=10, pady=5, row=7, column=0)
+
+        # return self.d11,self.dpar
 
         ShowData = tk.Button(
             self,
             text="Show Data",
-            command=lambda: controller.show_frame(ShowGraph),
+            command=lambda: (controller.show_frame(ShowGraph))
         )
         ShowData["activebackground"] = "#9b60ad"
         ShowData["bg"] = "#c71585"
@@ -319,8 +458,10 @@ class SelectDataAttributes(tk.Frame):
         ShowData.grid(row=7, column=0, padx=1, pady=5, sticky=EW, columnspan=6)
 
 
-
+# -----------------------------------------------------------------------------------------------------------------------------------------ShowGraph
 filename = ''
+# df = pd.DataFrame()
+# df = pd.read_csv(filename, skiprows=[1])
 df = pd.read_csv
 
 
@@ -369,70 +510,149 @@ class ShowGraph(tk.Frame):
 
    
     def showit(self):
-        # First, clear the existing graph and toolbar if they exist
-        if self.canvas:
-            self.canvas.get_tk_widget().pack_forget()
-        if self.toolbar:
-            self.toolbar.pack_forget()
-
-        # Retrieve the filename or data
+        
         global filename
-        if filename:
-            try:
-                df = pd.read_csv(filename, skiprows=[1])  # Customize as per your CSV format
-                fig, ax = plt.subplots(figsize=(7, 7), dpi=100)
+        global df
+        global local_time
+        try:
+            self.scroll_y.pack_forget()
+            self.canvas.get_tk_widget().pack_forget()
+            self.toolbar.pack_forget()
+            self.frame1.pack_forget()
+        except AttributeError:
+            pass
 
-                # Example: Plotting
-                x = df['Datetime (UTC)']  # Change these column names as per your CSV
-                y = df['Acc magnitude avg']  # Change these column names as per your CSV
-                ax.plot(x, y, label='Acc magnitude avg', color='blue')
-
-                ax.set_xlabel('Datetime (UTC)')
-                ax.set_ylabel('Acc magnitude avg')
-                ax.set_title('Customized Graph')
-                ax.legend(loc='upper right')
-
-                self.canvas = FigureCanvasTkAgg(fig, master=self)
-                self.canvas.get_tk_widget().pack(side=LEFT, fill=BOTH, expand=True)
-                self.toolbar = NavigationToolbar2Tk(self.canvas, self)
-                self.toolbar.pack(side=TOP, fill=X)
-
-                self.canvas.draw()
-
-            except Exception as e:
-                print(f"Error loading or plotting data: {e}")
+        self.frame1 = Frame(self, highlightbackground="blue", highlightthickness=2)
+        self.frame1.pack(side=TOP)
+        if not clicked:
+            fw = Paricipant.g1234()
+            # filename = open("Dataset"+date_t+participant+"/summary.csv")
+            print("not clicked", fw)
+            filename = fw
         else:
-            print("No data file selected.")
+            fw = Paricipant.g1234()
+            # filename = filename = Paricipant.g1234()
+            print("it is clicked: file name:", fw.name)
+            filename = fw.name
+        if filename == '':
+            df = pd.read_csv('Dataset/20200121/310/summary.csv', skiprows=[1])
+        else:
+            df = pd.read_csv(filename, skiprows=[1])
+        print("this is global fn: ", filename)
+        # return fw.name
+        x = "Datetime (UTC)"
 
+        row, cols = 7, 1
+        fig, ax = plt.subplots(figsize=(7, 7), dpi=100, nrows=row, ncols=cols, sharex=True)
+        fig.subplots_adjust(hspace=1, wspace=.5, bottom=.1, top=1)
+        p1 = ax[0]
+        p2 = ax[1]
+        p3 = ax[2]
+        p4 = ax[3]
+        p5 = ax[4]
+        p6 = ax[5]
+        p7 = ax[6]
+        fromx = 0
+        tox1 = 1405
+        # df = pd.read_csv(filename, skiprows=[1])
+        df.iloc[fromx:tox1].plot(x, "Acc magnitude avg", ax=p1)
+        df.iloc[fromx:tox1].plot(x, "Eda avg", ax=p2)
+        df.iloc[fromx:tox1].plot(x, "Temp avg", ax=p3)
+        df.iloc[fromx:tox1].plot(x, "Movement intensity", ax=p4)
+        df.iloc[fromx:tox1].plot(x, "Steps count", ax=p5)
+        df.iloc[fromx:tox1].plot(x, "Rest", ax=p6)
+        if local_time:
+            if df.loc[0, 'Timezone (minutes)'] == -300:
+                plt.gca().xaxis.set_major_formatter(
+                    mdates.DateFormatter("%b-%d %H:%M", pytz.timezone("America/New_York")))
+            else:
+                plt.gca().xaxis.set_major_formatter(
+                    mdates.DateFormatter("%b-%d %H:%M", pytz.timezone("US/Central")))
+        else:
+            plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b-%d %H:%M"))
+        fig.tight_layout()
+        self.canvas = FigureCanvasTkAgg(fig, master=self.frame1)
+        # self.canvas[Scale]
+        self.canvas.get_tk_widget().pack(side=LEFT)  # .grid(row= 1,column=0,padx=10, pady=5, sticky=N, columnspan=6)
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self)  # pack_toolbar=False)
+        self.toolbar.pack(side=TOP)  # .grid(row= 0,column=0,padx=10, pady=5, sticky=N, columnspan=6)
+        self.toolbar.update()
+        self.scroll_y = tk.Scrollbar(self.frame1, orient="vertical", command=self.canvas.get_tk_widget().yview)
+        self.scroll_y.pack(side=RIGHT, fill="both",
+                           expand=True)  # grid(row= 0,column=6,padx=10, pady=10, sticky="ns", columnspan=6)
+        # self.scroll_y.update()
+
+        # need the below to display graph.
+        # if self.canvas > 1:
+        #     self.canvas.pack_forget()
 
     def graph(self):
-        # Creating a frame to hold graph-related controls and information
         frame1 = Frame(self, highlightbackground="blue", highlightthickness=2)
         frame1["bg"] = "#00ced1"
-        frame1.pack(side=LEFT, fill=BOTH, expand=True)
+        frame1.pack(side=LEFT)  # .grid(row=0,column=0)#pack(side=LEFT,fill=Y)
+        global filename
 
-        # Example of adding labels for user instructions or info
         me1 = ["Home/Reset  ", "h or r or home"]
         me2 = ["Back  ", "c or left arrow or backspace"]
         me3 = ["Forward  ", "v or right arrow"]
         me4 = ["Pan/Zoom  ", " p"]
         me5 = ["Zoom-to-rect  ", " o"]
         me6 = ["Save  ", "  ctrl + s"]
+        label = tk.Label(frame1, text=me1)
+        # Place the label in the root window
+        label["bg"] = "#00d17d"
+        label.pack(anchor="w")
+        label = tk.Label(frame1, text=me2)
+        # Place the label in the root window
+        label["bg"] = "#00ced1"
+        label.pack(anchor="w")
+        label = tk.Label(frame1, text=me3)
+        # Place the label in the root window
+        label["bg"] = "#00d17d"
+        label.pack(anchor="w")
+        label = tk.Label(frame1, text=me4)
+        # Place the label in the root window
+        label["bg"] = "#00ced1"
+        label.pack(anchor="w")
+        label = tk.Label(frame1, text=me5)
+        # Place the label in the root window
+        label["bg"] = "#00d17d"
+        label.pack(anchor="w")
+        label = tk.Label(frame1, text=me6)
+        label["bg"] = "#00ced1"
+        # Place the label in the root window
+        label.pack(anchor="w")
 
-        label_instructions = [me1, me2, me3, me4, me5, me6]
-        for instruction in label_instructions:
-            label = tk.Label(frame1, text=instruction)
-            label.pack(anchor="w", pady=2)  # Adjust padding as needed
+        rcp = mpl.rcParams
+        rcp['lines.linewidth'] = 2.0
+        rcp['lines.markeredgewidth'] = 1.0
+        rcp['axes.labelsize'] = 2
+        rcp['font.size'] = 7
+        rcp['patch.linewidth'] = .7
+        rcp['figure.facecolor'] = '#c7d6ed'
+        rcp['figure.edgecolor'] = '#c7d6ed'
 
-        # Add a button to trigger the graph display
-        show_graph_button = tk.Button(
-            self,
-            text="Show Selected Graph",
-            command=self.showit  # Method to execute when button is pressed
-        )
-        show_graph_button.pack(side=TOP, pady=10)  # Adjust padding as neede
+        # rcp['toolbar']= True
+        date_t = r'/20200118'
+        participant = r'/310'
 
-        
+        bnt = tk.Button(self,
+                        text="Show Selected Graph",
+                        command=lambda: self.showit()
+                        )
+        bnt["activebackground"] = "#00ced1"
+        bnt["bg"] = "#00ced1"
+        ft2 = tkFont.Font(family='Times', size=20)
+        bnt["font"] = ft2
+        bnt["fg"] = "#393d49"
+        bnt["justify"] = "center"
+        # bnt["text"] = "Start"
+        bnt["relief"] = "ridge"
+        bnt.pack(side=TOP)  # .grid(row=0,column=0,sticky=NE)
+        # pack(side=BOTTOM, fill='both', expand=True)
+
+    # Convert an input zulu (UTC) time string into something more readable. Returning it:
+    # Didn't end up using this, but it may be helpful?
     def convertDate(zuluDate):
         input_format = '%Y-%m-%d %H%MZ'  # input example: 2020-01-17T23:48:00Z
         output_format = '%m-%d:%H%M'
