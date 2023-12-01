@@ -188,6 +188,25 @@ def aggregate_data_from_range(start_date, end_date, selected_option, timezone):
             print(f"No data found for {single_date.strftime('%Y-%m-%d')}")
     return pd.concat(data_frames) if data_frames else None
 
+def zoom_axis(ax, zoom_factor):
+    # Calculate the new x and y axis ranges based on the zoom factor
+    x_min, x_max = ax.get_xlim()
+    x_range = ((x_max - x_min) / 2) * zoom_factor
+    y_min, y_max = ax.get_ylim()
+    y_range = ((y_max - y_min) / 2) * zoom_factor
+
+    # Set the new axis limits
+    ax.set_xlim(x_min + x_range, x_max - x_range)
+    ax.set_ylim(y_min + y_range, y_max - y_range)
+
+def reset_zoom(ax, original_xlim, original_ylim):
+    # Reset the axis limits to the original values
+    ax.set_xlim(original_xlim)
+    ax.set_ylim(original_ylim)
+
+
+
+
 def main():
     sg.theme('LightBlue2')
     chart_types = ['plot', 'scatter', 'bar']
@@ -224,12 +243,20 @@ def main():
         [sg.Text('Chart Type:'), sg.Combo(chart_types, key='-CHART TYPE-', default_value='plot')],
         [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],
         [sg.Button('Show Graph'), sg.Button('Show Statistics'), sg.Button('Open Time Box')], 
-        [sg.Canvas(key='-CANVAS-')]
+        [sg.Canvas(key='-CANVAS-')],
+        [sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
+
     ]
 
 
     window = sg.Window('Data Analysis App', layout)
     current_timezone = 'UTC'  # Default time zone
+
+    # Define initial zoom level and current axis limits
+    original_xlim = None
+    original_ylim = None
+    zoom_level = 1.0
+    fig = None
 
     while True:
         event, values = window.read()
@@ -265,6 +292,28 @@ def main():
                         draw_figure(window['-CANVAS-'].TKCanvas, fig)
                     else:
                         sg.popup(f'No data found for the selected date: {selected_date}')
+
+            if fig is not None:
+                original_xlim = [ax.get_xlim() for ax in fig.axes]
+                original_ylim = [ax.get_ylim() for ax in fig.axes]
+
+        if event == 'Zoom In' and fig is not None:
+            zoom_level *= 0.5  # Reduce zoom level for zooming in
+            for ax in fig.axes:
+                zoom_axis(ax, zoom_level)
+            fig.canvas.draw_idle()
+
+        if event == 'Zoom Out' and fig is not None:
+            zoom_level *= 2  # Increase zoom level for zooming out
+            for ax in fig.axes:
+                zoom_axis(ax, zoom_level)
+            fig.canvas.draw_idle()
+
+        if event == 'Reset Zoom' and fig is not None and original_xlim is not None and original_ylim is not None:
+            zoom_level = 1.0  # Reset zoom level
+            for ax, orig_x, orig_y in zip(fig.axes, original_xlim, original_ylim):
+                reset_zoom(ax, orig_x, orig_y)
+            fig.canvas.draw_idle()
 
 
         if event == 'Show Statistics':
