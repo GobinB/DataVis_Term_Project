@@ -1,5 +1,8 @@
 import PySimpleGUI as sg
 import pandas as pd
+import matplotlib
+matplotlib.use("TkAgg")
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as mdates
@@ -47,7 +50,7 @@ def plot_data(file_location, columns, chart_type, timezone):
         # Add more attributes as needed
     ]
 
-    # Count how many attributes are selected
+    
     num_attributes = sum(1 for _, is_checked in attributes_to_plot if is_checked)
 
     if num_attributes == 0:
