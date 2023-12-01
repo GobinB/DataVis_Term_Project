@@ -31,18 +31,7 @@ def generate_file_location(date, option):
     file_location = f"{base_directory}/{formatted_date}/{option}/summary.csv"
     return file_location
 
-def draw_figure(canvas, figure, loc=(0, 0)):
-    if hasattr(canvas, 'figure_agg'):
-        canvas.figure_agg.get_tk_widget().forget()
-        plt.close(canvas.figure_agg.figure)
-        # Remove the old scrollbar
-        for child in canvas.winfo_children():
-            if isinstance(child, ttk.Scrollbar):
-                child.destroy()
 
-    # Create a FigureCanvasTkAgg object
-    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-    figure_canvas_agg.draw()
 def draw_figure(canvas, figure, loc=(0, 0)):
     if hasattr(canvas, 'figure_agg'):
         canvas.figure_agg.get_tk_widget().forget()
