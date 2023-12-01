@@ -75,7 +75,12 @@ def draw_figure(canvas, figure, loc=(0, 0)):
     canvas.figure_agg = figure_canvas_agg
 
 def plot_data(file_location, columns, chart_type, timezone):
-    df = pd.read_csv(file_location)
+    try:
+        df = pd.read_csv(file_location)
+    except FileNotFoundError:
+        print(f"File not found: {file_location}")
+        return None
+
     df = convert_to_local_time(df, timezone)
 
     # Assuming you want to plot these attributes based on checkbox selections
@@ -154,6 +159,26 @@ def show_statistics(df):
     layout = [[sg.Text(str(stats))]]
     sg.Window('Statistics', layout, modal=True).read(close=True)
 
+def get_date_range(start_date, end_date):
+    """Generate a list of dates between start_date and end_date."""
+    start = pd.to_datetime(start_date)
+    end = pd.to_datetime(end_date)
+    date_range = pd.date_range(start, end)
+    return date_range
+
+def aggregate_data_from_range(start_date, end_date, selected_option, timezone):
+    """Load and combine data from a range of dates."""
+    date_range = get_date_range(start_date, end_date)
+    data_frames = []
+    for single_date in date_range:
+        file_location = generate_file_location(single_date.strftime('%Y-%m-%d'), selected_option)
+        try:
+            df = pd.read_csv(file_location)
+            df = convert_to_local_time(df, timezone)
+            data_frames.append(df)
+        except FileNotFoundError:
+            print(f"No data found for {single_date.strftime('%Y-%m-%d')}")
+    return pd.concat(data_frames) if data_frames else None
 
 def main():
     sg.theme('LightBlue2')
@@ -165,24 +190,32 @@ def main():
         [sg.Text('Welcome')],
         [
             sg.Text('Select Date:'),
-            sg.Combo(date_combobox_choices, key='-DATE-', default_value='None')
+            sg.Combo(date_combobox_choices, key='-DATE-', default_value='None'),
+            sg.Text('Or Select Date Range:'),
+            sg.Text('Start Date:'),
+            sg.Input(key='-STARTDATE-', enable_events=True, size=(20,1)),
+            sg.CalendarButton('Choose Start Date', target='-STARTDATE-', key='-STARTDATE-BTN-', format='%Y-%m-%d'),
+            sg.Text('End Date:'),
+            sg.Input(key='-ENDDATE-', enable_events=True, size=(20,1)),
+            sg.CalendarButton('Choose End Date', target='-ENDDATE-', key='-ENDDATE-BTN-', format='%Y-%m-%d')
         ],
         [
             sg.Text('Select Option:'),
             sg.Combo(option_combobox_choices, key='-OPTION-', default_value='310')
-        ],  # Modified to use a combo box for selecting options
+        ],
         [
             sg.Checkbox('Acc magnitude avg', key='-ACC-', default=True),
             sg.Checkbox('Eda avg', key='-EDA-', default=True),
             sg.Checkbox('Temp avg', key='-TEMP-', default=True),
             sg.Checkbox('Movement intensity', key='-MOVEMENT-', default=True),
-            sg.Checkbox('On Wrist', key='-ON WRIST-')  # Adding checkbox for On Wrist data
+            sg.Checkbox('On Wrist', key='-ON WRIST-')
         ],
         [sg.Text('Chart Type:'), sg.Combo(chart_types, key='-CHART TYPE-', default_value='plot')],
-        [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],  # Added timezone selection
-        [sg.Button('Show Graph'), sg.Button('Show Statistics')],  # Added Show Statistics button
+        [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],
+        [sg.Button('Show Graph'), sg.Button('Show Statistics')],
         [sg.Canvas(key='-CANVAS-')]
     ]
+
 
     window = sg.Window('Data Analysis App', layout)
     current_timezone = 'UTC'  # Default time zone
@@ -194,12 +227,26 @@ def main():
 
         if event == 'Show Graph':
             selected_date = values['-DATE-']
+            start_date = values['-STARTDATE-']
+            end_date = values['-ENDDATE-']
             selected_option = values['-OPTION-']
 
-            if selected_date and selected_option:
-                file_location = generate_file_location(selected_date, selected_option)
-                fig = plot_data(file_location, values, values['-CHART TYPE-'], current_timezone)
-                draw_figure(window['-CANVAS-'].TKCanvas, fig)
+            if (selected_date or (start_date and end_date)) and selected_option:
+                if start_date and end_date:
+                    aggregated_data = aggregate_data_from_range(start_date, end_date, selected_option, current_timezone)
+                    if aggregated_data is not None:
+                        fig = plot_data(generate_file_location(start_date, selected_option), values, values['-CHART TYPE-'], current_timezone)
+                        draw_figure(window['-CANVAS-'].TKCanvas, fig)
+                    else:
+                        sg.popup('No data available for the selected date range.')
+                elif selected_date:
+                    file_location = generate_file_location(selected_date, selected_option)
+                    fig = plot_data(file_location, values, values['-CHART TYPE-'], current_timezone)
+                    if fig is not None:
+                        draw_figure(window['-CANVAS-'].TKCanvas, fig)
+                    else:
+                        sg.popup(f'No data found for the selected date: {selected_date}')
+
 
         if event == 'Show Statistics':
             selected_date = values['-DATE-']
