@@ -7,7 +7,6 @@ add zooming and all.
 
 add scroll in graph. -- currently working ahmed
 
-add time box weidget.  -- currently working gobin
 
 
 -- look over requirements afterwards. 
