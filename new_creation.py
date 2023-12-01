@@ -50,7 +50,6 @@ def plot_data(file_location, columns, chart_type, timezone):
         # Add more attributes as needed
     ]
 
-    
     num_attributes = sum(1 for _, is_checked in attributes_to_plot if is_checked)
 
     if num_attributes == 0:
@@ -63,7 +62,12 @@ def plot_data(file_location, columns, chart_type, timezone):
 
     for ax, (attr, is_checked) in zip(axs, attributes_to_plot):
         if is_checked:
-            ax.plot(df['Datetime (UTC)'], df[attr], label=attr)
+            if chart_type == 'plot':
+                ax.plot(df['Datetime (UTC)'], df[attr], label=attr)
+            elif chart_type == 'scatter':
+                ax.scatter(df['Datetime (UTC)'], df[attr], label=attr)
+            elif chart_type == 'bar':
+                ax.bar(df['Datetime (UTC)'], df[attr], label=attr)
             ax.set_ylabel(attr)
             ax.legend()
 
@@ -72,7 +76,6 @@ def plot_data(file_location, columns, chart_type, timezone):
 
     fig.tight_layout()
     return fig
-
 
 # Data Handling Class
 class DataHandler:
