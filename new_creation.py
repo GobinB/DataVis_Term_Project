@@ -144,9 +144,28 @@ class DataHandler:
 
 # Function to show statistics window
 def show_statistics(df):
-    stats = df.describe().T
-    layout = [[sg.Text(str(stats))]]
-    sg.Window('Statistics', layout, modal=True).read(close=True)
+    # Convert the descriptive statistics into a list of lists, suitable for the Table Element
+    data_for_table = df.describe().reset_index().values.tolist()
+    headings = [''] + list(df.describe().columns)  # Add an empty string for the index column header
+
+    # Define the layout for the new window
+    layout = [
+        [sg.Table(values=data_for_table, headings=headings, max_col_width=25,
+                  auto_size_columns=True, display_row_numbers=True, justification='right', num_rows=10, key='-TABLE-',
+                  row_height=35, tooltip='This is a table')],
+    ]
+
+    # Create a new window to display the statistics
+    stats_window = sg.Window('Time Box', layout, modal=True)
+
+    # Event loop for the new window
+    while True:
+        event, values = stats_window.read()
+        if event == sg.WINDOW_CLOSED:
+            break
+
+    stats_window.close()
+
 
 def get_date_range(start_date, end_date):
     """Generate a list of dates between start_date and end_date."""
@@ -204,7 +223,7 @@ def main():
         ],
         [sg.Text('Chart Type:'), sg.Combo(chart_types, key='-CHART TYPE-', default_value='plot')],
         [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],
-        [sg.Button('Show Graph'), sg.Button('Show Statistics')],
+        [sg.Button('Show Graph'), sg.Button('Show Statistics'), sg.Button('Open Time Box')], 
         [sg.Canvas(key='-CANVAS-')]
     ]
 
@@ -257,6 +276,20 @@ def main():
                 df = pd.read_csv(file_location)
                 df = convert_to_local_time(df, values['-TIMEZONE-'])  # Convert to selected timezone
                 show_statistics(df)
+
+
+        if event == 'Open Time Box':
+            selected_date = values['-DATE-']
+            selected_option = values['-OPTION-']
+
+            if selected_date and selected_option:
+                file_location = generate_file_location(selected_date, selected_option)
+                try:
+                    df = pd.read_csv(file_location)
+                    df = convert_to_local_time(df, values['-TIMEZONE-'])
+                    show_statistics(df)  # This function will show the statistics in a table format as a separate window
+                except FileNotFoundError:
+                    sg.popup(f"No data found for the selected date: {selected_date}")
 
     window.close()
 
