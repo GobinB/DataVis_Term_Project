@@ -94,7 +94,14 @@ def main():
         event, values = window.read()
         if event == sg.WINDOW_CLOSED:
             break
-        elif event == 'Show Graph':
+
+        # Disable the '311' option for specific dates
+        if values['2020-01-20'] or values['2020-01-21']:
+            window['311'].update(disabled=True)
+        else:
+            window['311'].update(disabled=False)
+
+        if event == 'Show Graph':  # Changed from elif to if
             selected_date = next((key for key, value in values.items() if value and key.startswith('2020')), None)
             selected_option = next((key for key, value in values.items() if value and key.isdigit()), None)
 
