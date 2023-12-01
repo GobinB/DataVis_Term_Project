@@ -38,29 +38,38 @@ def plot_data(file_location, columns, chart_type, timezone):
     df = pd.read_csv(file_location)
     df = convert_to_local_time(df, timezone)
 
-    background_color = '#AAB6D3'
-    fig, axs = plt.subplots(2, 2, figsize=(15, 3), facecolor=background_color, sharex=True)
+    # Assuming you want to plot these attributes based on checkbox selections
+    attributes_to_plot = [
+        ('Acc magnitude avg', columns['-ACC-']),
+        ('Eda avg', columns['-EDA-']),
+        ('Temp avg', columns['-TEMP-']),
+        ('Movement intensity', columns['-MOVEMENT-']),
+        # Add more attributes as needed
+    ]
 
-    for ax in axs.flat:
-        ax.set_facecolor(background_color)
-        ax.tick_params(colors='black')
+    # Count how many attributes are selected
+    num_attributes = sum(1 for _, is_checked in attributes_to_plot if is_checked)
+
+    if num_attributes == 0:
+        return None  # No attributes selected, so no plot to create
+
+    fig, axs = plt.subplots(num_attributes, 1, figsize=(15, 3 * num_attributes), sharex=True)
+
+    if num_attributes == 1:
+        axs = [axs]  # Make sure axs is always a list, even for a single subplot
+
+    for ax, (attr, is_checked) in zip(axs, attributes_to_plot):
+        if is_checked:
+            ax.plot(df['Datetime (UTC)'], df[attr], label=attr)
+            ax.set_ylabel(attr)
+            ax.legend()
+
+    for ax in axs:
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
 
-    plot_func = getattr(axs[0, 0], chart_type)
-
-    if columns['-ACC-']:
-        plot_func(df['Datetime (UTC)'], df['Acc magnitude avg'], label='Acc magnitude avg')
-    if columns['-EDA-']:
-        plot_func(df['Datetime (UTC)'], df['Eda avg'], label='Eda avg')
-    if columns['-TEMP-']:
-        plot_func(df['Datetime (UTC)'], df['Temp avg'], label='Temp avg')
-    if columns['-MOVEMENT-']:
-        plot_func(df['Datetime (UTC)'], df['Movement intensity'], label='Movement intensity')
-
-    for ax in axs.flat:
-        ax.legend()
-
+    fig.tight_layout()
     return fig
+
 
 # Data Handling Class
 class DataHandler:
