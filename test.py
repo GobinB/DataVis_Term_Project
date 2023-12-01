@@ -3,96 +3,114 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as mdates
-from datetime import datetime as dt
 
-# Function to convert UTC to local time
-def convert_to_local_time(df, timezone='UTC'):
-    df['Datetime (UTC)'] = pd.to_datetime(df['Datetime (UTC)'])
-    df = df.set_index('Datetime (UTC)')
-    if timezone != 'UTC':
-        df.index = df.index.tz_convert(timezone)
-    return df.reset_index()
+# Constants
+BASE_DIRECTORY = 'Dataset'
+BACKGROUND_COLOR = '#AAB6D3'
+CHART_TYPES = ['plot', 'scatter', 'bar']
+TIMEZONES = ['UTC', 'US/Eastern', 'Europe/London']  # Add more timezones as needed
 
-def draw_figure(canvas, figure, loc=(0, 0)):
+# Data Handling Class
+class DataHandler:
+    def __init__(self, base_directory=BASE_DIRECTORY):
+        self.base_directory = base_directory
+
+    def convert_to_local_time(self, df, timezone='UTC'):
+        df['Datetime (UTC)'] = pd.to_datetime(df['Datetime (UTC)'])
+        df = df.set_index('Datetime (UTC)')
+        if timezone != 'UTC':
+            df.index = df.index.tz_convert(timezone)
+        return df.reset_index()
+
+    def generate_file_location(self, date, option):
+        formatted_date = date.replace('-', '')
+        return f"{self.base_directory}/{formatted_date}/{option}/summary.csv"
+
+    def load_data(self, file_location, timezone):
+        df = pd.read_csv(file_location)
+        return self.convert_to_local_time(df, timezone)
+
+# Function to draw a Matplotlib figure on a canvas
+def draw_figure(canvas, figure):
+    if hasattr(canvas, 'figure_agg'):
+        canvas.figure_agg.get_tk_widget().forget()
+        plt.close(canvas.figure_agg.figure)
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
     figure_canvas_agg.draw()
     figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-    return figure_canvas_agg
+    canvas.figure_agg = figure_canvas_agg
 
-def plot_data(file_location, columns, timezone, start_date, end_date):
-    df = pd.read_csv(file_location)
-    df = convert_to_local_time(df, timezone)
-    df = df[(df['Datetime (UTC)'] >= start_date) & (df['Datetime (UTC)'] <= end_date)]
-    
-    background_color = '#AAB6D3'
-    fig, axs = plt.subplots(2, 2, figsize=(10, 8), facecolor=background_color, sharex=True)
+# Function to plot data
+def plot_data(handler, file_location, columns, chart_type, timezone):
+    df = handler.load_data(file_location, timezone)
 
+    fig, axs = plt.subplots(2, 2, figsize=(15, 3), facecolor=BACKGROUND_COLOR, sharex=True)
     for ax in axs.flat:
-        ax.set_facecolor(background_color)
+        ax.set_facecolor(BACKGROUND_COLOR)
         ax.tick_params(colors='black')
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
 
-    if columns['-ACC-']:
-        axs[0, 0].plot(df['Datetime (UTC)'], df['Acc magnitude avg'], label='Acc magnitude avg')
-    if columns['-EDA-']:
-        axs[0, 1].plot(df['Datetime (UTC)'], df['Eda avg'], label='Eda avg')
-    if columns['-TEMP-']:
-        axs[1, 0].plot(df['Datetime (UTC)'], df['Temp avg'], label='Temp avg')
-    if columns['-MOVEMENT-']:
-        axs[1, 1].plot(df['Datetime (UTC)'], df['Movement intensity'], label='Movement intensity')
+    plot_func = getattr(axs[0, 0], chart_type)
+
+    for sensor, ax in zip(columns, axs.flat):
+        if columns[sensor]:
+            ax.plot(df['Datetime (UTC)'], df[sensor], label=sensor)
 
     for ax in axs.flat:
         ax.legend()
 
     return fig
 
+# Function to show statistics window
+def show_statistics(df):
+    stats = df.describe().T
+    layout = [[sg.Text(str(stats))]]
+    sg.Window('Statistics', layout, modal=True).read(close=True)
+
+# Main function
 def main():
     sg.theme('LightBlue2')
+    data_handler = DataHandler()
 
+    # UI layout
     layout = [
-        [sg.Text('Welcome')],
-        [
-            sg.Text('Start Date:'), sg.Input(key='-START-', size=(10, 1), default_text='2020-01-18'),
-            sg.CalendarButton('Pick Start Date', target='-START-', key='-START DATE-', format='%Y-%m-%d'),
-            sg.Text('End Date:'), sg.Input(key='-END-', size=(10, 1), default_text='2020-01-21'),
-            sg.CalendarButton('Pick End Date', target='-END-', key='-END DATE-', format='%Y-%m-%d')
-        ],
-        [
-            sg.Checkbox('Acc magnitude avg', key='-ACC-', default=True),
-            sg.Checkbox('Eda avg', key='-EDA-', default=True),
-            sg.Checkbox('Temp avg', key='-TEMP-', default=True),
-            sg.Checkbox('Movement intensity', key='-MOVEMENT-', default=True)
-        ],
-        [sg.Button('Show Graph'), sg.Button('UTC'), sg.Button('Local')],
-        [sg.Column([[sg.Canvas(key='-CANVAS-')]])]
+        [sg.Text('Welcome to Data Analysis App')],
+        [sg.Text('Select Date:'), sg.Combo(['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21'], key='-DATE-')],
+        [sg.Text('Select Option:'), sg.Combo(['310', '311', '312'], key='-OPTION-')],
+        [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],
+        [sg.Frame('Data Columns:', [[sg.Checkbox('Acc magnitude avg', key='-ACC-', default=True),
+                                     sg.Checkbox('Eda avg', key='-EDA-'),
+                                     sg.Checkbox('Temp avg', key='-TEMP-'),
+                                     sg.Checkbox('Movement intensity', key='-MOVEMENT-'),
+                                     sg.Checkbox('On Wrist', key='-ON WRIST-')]], size=(300, 150))],
+        [sg.Text('Chart Type:'), sg.Combo(CHART_TYPES, key='-CHART TYPE-', default_value='plot')],
+        [sg.Button('Show Graph'), sg.Button('Show Statistics')],
+        [sg.Canvas(key='-CANVAS-')]
     ]
 
-    window = sg.Window('Data Analysis App', layout, finalize=True)
-    current_timezone = 'UTC'  # Default time zone
-    fig_agg = None
+    window = sg.Window('Data Analysis App', layout)
 
     while True:
         event, values = window.read()
         if event == sg.WINDOW_CLOSED:
             break
-        elif event == 'Show Graph':
-            if fig_agg:
-                # Remove the previous plot
-                plt.close('all')
-                fig_agg.get_tk_widget().forget()
-                fig_agg = None
-            
-            selected_option = 'summary'  # Assuming summary.csv is the file to be used
-            start_date = dt.strptime(values['-START-'], '%Y-%m-%d')
-            end_date = dt.strptime(values['-END-'], '%Y-%m-%d')
-            file_location = f"Dataset/{selected_option}.csv"  # Update this path as required
-            
-            fig = plot_data(file_location, values, current_timezone, start_date, end_date)
-            fig_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
-        elif event == 'UTC':
-            current_timezone = 'UTC'
-        elif event == 'Local':
-            current_timezone = 'America/New_York'  # Modify as needed
+
+        if event == 'Show Graph':
+            selected_date = values['-DATE-']
+            selected_option = values['-OPTION-']
+            timezone = values['-TIMEZONE-']
+            if selected_date and selected_option:
+                file_location = data_handler.generate_file_location(selected_date, selected_option)
+                fig = plot_data(data_handler, file_location, values, values['-CHART TYPE-'], timezone)
+                draw_figure(window['-CANVAS-'].TKCanvas, fig)
+
+        if event == 'Show Statistics':
+            selected_date = values['-DATE-']
+            selected_option = values['-OPTION-']
+            if selected_date and selected_option:
+                file_location = data_handler.generate_file_location(selected_date, selected_option)
+                df = data_handler.load_data(file_location, values['-TIMEZONE-'])
+                show_statistics(df)
 
     window.close()
 

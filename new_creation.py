@@ -5,6 +5,12 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as mdates
 import numpy as np
 
+# Constants
+BASE_DIRECTORY = 'Dataset'
+BACKGROUND_COLOR = '#AAB6D3'
+CHART_TYPES = ['plot', 'scatter', 'bar']
+TIMEZONES = ['UTC', 'US/Eastern', 'Europe/London']  # Add more timezones as needed
+
 # Function to convert UTC to local time
 def convert_to_local_time(df, timezone='UTC'):
     df['Datetime (UTC)'] = pd.to_datetime(df['Datetime (UTC)'])
@@ -56,34 +62,59 @@ def plot_data(file_location, columns, chart_type, timezone):
 
     return fig
 
+# Data Handling Class
+class DataHandler:
+    def __init__(self, base_directory=BASE_DIRECTORY):
+        self.base_directory = base_directory
+
+    def convert_to_local_time(self, df, timezone='UTC'):
+        df['Datetime (UTC)'] = pd.to_datetime(df['Datetime (UTC)'])
+        df = df.set_index('Datetime (UTC)')
+        if timezone != 'UTC':
+            df.index = df.index.tz_convert(timezone)
+        return df.reset_index()
+
+    def generate_file_location(self, date, option):
+        formatted_date = date.replace('-', '')
+        return f"{self.base_directory}/{formatted_date}/{option}/summary.csv"
+
+    def load_data(self, file_location, timezone):
+        df = pd.read_csv(file_location)
+        return self.convert_to_local_time(df, timezone)
+
+# Function to show statistics window
+def show_statistics(df):
+    stats = df.describe().T
+    layout = [[sg.Text(str(stats))]]
+    sg.Window('Statistics', layout, modal=True).read(close=True)
+
+
 def main():
     sg.theme('LightBlue2')
     chart_types = ['plot', 'scatter', 'bar']
-    date_radios = [
-        [sg.Radio('2020-01-18', "DATES", key='2020-01-18', default=True)],
-        [sg.Radio('2020-01-19', "DATES", key='2020-01-19')],
-        [sg.Radio('2020-01-20', "DATES", key='2020-01-20')],
-        [sg.Radio('2020-01-21', "DATES", key='2020-01-21')]
-    ]
-
-    option_radios = [
-        [sg.Radio('310', "OPTIONS", key='310', default=True)],
-        [sg.Radio('311', "OPTIONS", key='311')],
-        [sg.Radio('312', "OPTIONS", key='312')]
-    ]
+    date_combobox_choices = ['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21']
+    option_combobox_choices = ['310', '311', '312']
 
     layout = [
         [sg.Text('Welcome')],
-        [sg.Frame('Select Dates', date_radios)],
-        [sg.Frame('Select Options', option_radios)],
+        [
+            sg.Text('Select Date:'),
+            sg.Combo(date_combobox_choices, key='-DATE-', default_value='2020-01-18')
+        ],
+        [
+            sg.Text('Select Option:'),
+            sg.Combo(option_combobox_choices, key='-OPTION-', default_value='310')
+        ],  # Modified to use a combo box for selecting options
         [
             sg.Checkbox('Acc magnitude avg', key='-ACC-', default=True),
             sg.Checkbox('Eda avg', key='-EDA-', default=True),
             sg.Checkbox('Temp avg', key='-TEMP-', default=True),
-            sg.Checkbox('Movement intensity', key='-MOVEMENT-', default=True)
+            sg.Checkbox('Movement intensity', key='-MOVEMENT-', default=True),
+            sg.Checkbox('On Wrist', key='-ON WRIST-')  # Added checkbox for On Wrist data
         ],
         [sg.Text('Chart Type:'), sg.Combo(chart_types, key='-CHART TYPE-', default_value='plot')],
-        [sg.Button('Show Graph')],
+        [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],  # Added timezone selection
+        [sg.Button('Show Graph'), sg.Button('Show Statistics')],  # Added Show Statistics button
         [sg.Canvas(key='-CANVAS-')]
     ]
 
@@ -95,20 +126,24 @@ def main():
         if event == sg.WINDOW_CLOSED:
             break
 
-        # Disable the '311' option for specific dates
-        if values['2020-01-20'] or values['2020-01-21']:
-            window['311'].update(disabled=True)
-        else:
-            window['311'].update(disabled=False)
-
-        if event == 'Show Graph':  # Changed from elif to if
-            selected_date = next((key for key, value in values.items() if value and key.startswith('2020')), None)
-            selected_option = next((key for key, value in values.items() if value and key.isdigit()), None)
+        if event == 'Show Graph':
+            selected_date = values['-DATE-']
+            selected_option = values['-OPTION-']
 
             if selected_date and selected_option:
                 file_location = generate_file_location(selected_date, selected_option)
                 fig = plot_data(file_location, values, values['-CHART TYPE-'], current_timezone)
                 draw_figure(window['-CANVAS-'].TKCanvas, fig)
+
+        if event == 'Show Statistics':
+            selected_date = values['-DATE-']
+            selected_option = values['-OPTION-']
+
+            if selected_date and selected_option:
+                file_location = generate_file_location(selected_date, selected_option)
+                df = pd.read_csv(file_location)
+                df = convert_to_local_time(df, values['-TIMEZONE-'])  # Convert to selected timezone
+                show_statistics(df)
 
     window.close()
 
