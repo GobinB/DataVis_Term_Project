@@ -90,7 +90,7 @@ def plot_data(file_location, columns, chart_type, timezone):
     num_rows = int(math.ceil(num_attributes / 2))
     num_cols = min(2, num_attributes)
 
-    fig, axs = plt.subplots(num_attributes, 1, figsize=(15, 3 * num_rows), sharex=True)
+    fig, axs = plt.subplots(num_attributes, 1, figsize=(15, 3 * num_rows), sharex=False)
 
     if num_attributes == 1:
         axs = np.array([axs])  # Make sure axs is always a numpy array, even for a single subplot
