@@ -84,7 +84,7 @@ def plot_data(file_location, columns, chart_type, timezone):
         ('Eda avg', columns['-EDA-']),
         ('Temp avg', columns['-TEMP-']),
         ('Movement intensity', columns['-MOVEMENT-']),
-        # Add more attributes as needed
+        ('On Wrist', columns['-ON WRIST-']),
     ]
 
     num_attributes = sum(1 for _, is_checked in attributes_to_plot if is_checked)
@@ -165,7 +165,7 @@ def main():
         [sg.Text('Welcome')],
         [
             sg.Text('Select Date:'),
-            sg.Combo(date_combobox_choices, key='-DATE-', default_value='2020-01-18')
+            sg.Combo(date_combobox_choices, key='-DATE-', default_value='None')
         ],
         [
             sg.Text('Select Option:'),
@@ -176,7 +176,7 @@ def main():
             sg.Checkbox('Eda avg', key='-EDA-', default=True),
             sg.Checkbox('Temp avg', key='-TEMP-', default=True),
             sg.Checkbox('Movement intensity', key='-MOVEMENT-', default=True),
-            sg.Checkbox('On Wrist', key='-ON WRIST-')  # Added checkbox for On Wrist data
+            sg.Checkbox('On Wrist', key='-ON WRIST-')  # Adding checkbox for On Wrist data
         ],
         [sg.Text('Chart Type:'), sg.Combo(chart_types, key='-CHART TYPE-', default_value='plot')],
         [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],  # Added timezone selection
