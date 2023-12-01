@@ -20,17 +20,20 @@ def generate_file_location(date, option):
     return file_location
 
 def draw_figure(canvas, figure, loc=(0, 0)):
+    if hasattr(canvas, 'figure_agg'):
+        canvas.figure_agg.get_tk_widget().forget()
+        plt.close(canvas.figure_agg.figure)
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
     figure_canvas_agg.draw()
     figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-    return figure_canvas_agg
+    canvas.figure_agg = figure_canvas_agg
 
 def plot_data(file_location, columns, chart_type, timezone):
     df = pd.read_csv(file_location)
     df = convert_to_local_time(df, timezone)
 
     background_color = '#AAB6D3'
-    fig, axs = plt.subplots(2, 2, figsize=(10, 8), facecolor=background_color, sharex=True)
+    fig, axs = plt.subplots(2, 2, figsize=(15, 3), facecolor=background_color, sharex=True)
 
     for ax in axs.flat:
         ax.set_facecolor(background_color)
