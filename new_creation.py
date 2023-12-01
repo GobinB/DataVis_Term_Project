@@ -13,10 +13,10 @@ def convert_to_local_time(df, timezone='UTC'):
         df.index = df.index.tz_convert(timezone)
     return df.reset_index()
 
-def generate_file_location(date, participant, option):
+def generate_file_location(date, option):
     base_directory = 'Dataset'
     formatted_date = date.replace('-', '')
-    file_location = f"{base_directory}/{formatted_date}/{participant}/{option}/summary.csv"
+    file_location = f"{base_directory}/{formatted_date}/{option}/summary.csv"
     return file_location
 
 def draw_figure(canvas, figure, loc=(0, 0)):
@@ -56,14 +56,23 @@ def plot_data(file_location, columns, chart_type, timezone):
 def main():
     sg.theme('LightBlue2')
     chart_types = ['plot', 'scatter', 'bar']
+    date_radios = [
+        [sg.Radio('2020-01-18', "DATES", key='2020-01-18', default=True)],
+        [sg.Radio('2020-01-19', "DATES", key='2020-01-19')],
+        [sg.Radio('2020-01-20', "DATES", key='2020-01-20')],
+        [sg.Radio('2020-01-21', "DATES", key='2020-01-21')]
+    ]
+
+    option_radios = [
+        [sg.Radio('310', "OPTIONS", key='310', default=True)],
+        [sg.Radio('311', "OPTIONS", key='311')],
+        [sg.Radio('312', "OPTIONS", key='312')]
+    ]
 
     layout = [
         [sg.Text('Welcome')],
-        [
-            sg.Combo(['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21'], key='-DATE-', default_value='2020-01-18'),
-            sg.Combo(['Participant 1', 'Participant 2', 'Participant 3'], key='-PARTICIPANT-', default_value='Participant 1'),
-            sg.Combo(['310', '311', '312'], key='-OPTION-', default_value='310')
-        ],
+        [sg.Frame('Select Dates', date_radios)],
+        [sg.Frame('Select Options', option_radios)],
         [
             sg.Checkbox('Acc magnitude avg', key='-ACC-', default=True),
             sg.Checkbox('Eda avg', key='-EDA-', default=True),
@@ -71,9 +80,8 @@ def main():
             sg.Checkbox('Movement intensity', key='-MOVEMENT-', default=True)
         ],
         [sg.Text('Chart Type:'), sg.Combo(chart_types, key='-CHART TYPE-', default_value='plot')],
-        [sg.Button('Show Graph'), sg.Button('UTC'), sg.Button('Local')],
-        [sg.Slider(range=(0, 100), orientation='h', size=(34, 20), key='-TIME SLIDER-')],
-        [sg.Column([[sg.Canvas(key='-CANVAS-')]])]
+        [sg.Button('Show Graph')],
+        [sg.Canvas(key='-CANVAS-')]
     ]
 
     window = sg.Window('Data Analysis App', layout)
@@ -84,18 +92,13 @@ def main():
         if event == sg.WINDOW_CLOSED:
             break
         elif event == 'Show Graph':
-            selected_date = values['-DATE-']
-            selected_participant = values['-PARTICIPANT-']
-            selected_option = values['-OPTION-']
-            chart_type = values['-CHART TYPE-']
+            selected_date = next((key for key, value in values.items() if value and key.startswith('2020')), None)
+            selected_option = next((key for key, value in values.items() if value and key.isdigit()), None)
 
-            file_location = generate_file_location(selected_date, selected_participant, selected_option)
-            fig = plot_data(file_location, values, chart_type, current_timezone)
-            fig_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
-        elif event == 'UTC':
-            current_timezone = 'UTC'
-        elif event == 'Local':
-            current_timezone = 'America/New_York'  # Modify as needed
+            if selected_date and selected_option:
+                file_location = generate_file_location(selected_date, selected_option)
+                fig = plot_data(file_location, values, values['-CHART TYPE-'], current_timezone)
+                draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
     window.close()
 
