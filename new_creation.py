@@ -44,22 +44,28 @@ def draw_figure(canvas, figure, loc=(0, 0)):
     # Create a FigureCanvasTkAgg object
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
     figure_canvas_agg.draw()
+    widget = figure_canvas_agg.get_tk_widget()
+    widget.pack(side='top', fill='both', expand=True)
 
-    # Pack the FigureCanvasTkAgg widget to fill both the X and Y axes
-    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    # Update idletasks before configuring the scrollregion
+    widget.update_idletasks()
 
-    # Create vertical scrollbar and attach it to the canvas
-    vscrollbar = ttk.Scrollbar(canvas, orient='vertical', command=canvas.yview)
+    # Calculate the figure size in pixels, which is needed for the scrollregion
+    dpi = figure.get_dpi()
+    fig_width, fig_height = figure.get_size_inches()
+    scrollregion = (0, 0, fig_width * dpi, fig_height * dpi)
+
+    # Set the scroll region to the size of the figure in pixels
+    canvas.configure(scrollregion=scrollregion)
+
+    # Create scrollbars and attach them to the figure canvas
+    vscrollbar = ttk.Scrollbar(canvas, orient='vertical', command=widget.yview)
     vscrollbar.pack(side='right', fill='y')
-    canvas.configure(yscrollcommand=vscrollbar.set)
+    widget.configure(yscrollcommand=vscrollbar.set)
 
-    # Create horizontal scrollbar and attach it to the canvas
-    hscrollbar = ttk.Scrollbar(canvas, orient='horizontal', command=canvas.xview)
+    hscrollbar = ttk.Scrollbar(canvas, orient='horizontal', command=widget.xview)
     hscrollbar.pack(side='bottom', fill='x')
-    canvas.configure(xscrollcommand=hscrollbar.set)
-
-    # Set the canvas scrolling region
-    canvas.config(scrollregion=canvas.bbox("all"))
+    widget.configure(xscrollcommand=hscrollbar.set)
 
     canvas.figure_agg = figure_canvas_agg
 
@@ -203,8 +209,6 @@ def reset_zoom(ax, original_xlim, original_ylim):
     # Reset the axis limits to the original values
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
-
-
 
 
 def main():
