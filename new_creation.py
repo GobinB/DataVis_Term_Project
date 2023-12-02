@@ -372,6 +372,10 @@ def main():
                     file_location = generate_file_location(selected_date, selected_option)
                     fig = plot_data(file_location, values, values['-CHART TYPE-'], selected_timezone)
                     if fig is not None:
+                        # Store the original axis limits
+                        original_xlim = [ax.get_xlim() for ax in fig.axes]
+                        original_ylim = [ax.get_ylim() for ax in fig.axes]
+
                         draw_figure(window['-CANVAS-'].TKCanvas, fig)
                     else:
                         sg.popup(f'No data found for the selected date: {selected_date}')
