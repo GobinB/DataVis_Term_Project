@@ -30,7 +30,7 @@ def convert_to_local_time(df, timezone):
         df['Datetime (UTC)'] = df['Datetime (UTC)'].dt.tz_convert(selected_tz)
     return df
 
-
+#fixing x axis labels 
 def update_x_axis_labels(fig, timezone):
     for ax in fig.axes:
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
