@@ -25,11 +25,11 @@ selected_timezone = 'UTC'
 
 def convert_to_local_time(df, timezone):
     df['Datetime (UTC)'] = pd.to_datetime(df['Datetime (UTC)'])
-    df = df.set_index('Datetime (UTC)')
     if timezone != 'UTC':
         selected_tz = pytz.timezone(timezone)
-        df.index = df.index.tz_localize('UTC').tz_convert(selected_tz)
-    return df.reset_index()
+        df['Datetime (UTC)'] = df['Datetime (UTC)'].dt.tz_convert(selected_tz)
+    return df
+
 
 def update_x_axis_labels(fig, timezone):
     for ax in fig.axes:
@@ -151,12 +151,13 @@ class DataHandler:
     def __init__(self, base_directory=BASE_DIRECTORY):
         self.base_directory = base_directory
 
-    def convert_to_local_time(self, df, timezone='UTC'):
+    def convert_to_local_time(df, timezone):
         df['Datetime (UTC)'] = pd.to_datetime(df['Datetime (UTC)'])
-        df = df.set_index('Datetime (UTC)')
         if timezone != 'UTC':
-            df.index = df.index.tz_convert(timezone)
-        return df.reset_index()
+            selected_tz = pytz.timezone(timezone)
+            df['Datetime (UTC)'] = df['Datetime (UTC)'].dt.tz_convert(selected_tz)
+        return df
+
 
     def generate_file_location(self, date, option):
         formatted_date = date.replace('-', '')
@@ -255,7 +256,11 @@ def main():
     chart_types = ['plot', 'scatter', 'bar']
     date_combobox_choices = ['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21']
     option_combobox_choices = ['310', '311', '312']
-    selected_timezone = 'UTC'  # Initialize with a default value
+    selected_timezone = 'US/Eastern'  
+    df = None  # Initialize df as None
+
+    # Initialize with a default value
+    # selected_timezone_var = sg.StringVar(value=selected_timezone)
 
     layout = [
         [sg.Text('Welcome')],
@@ -285,7 +290,10 @@ def main():
             sg.Checkbox('On Wrist', key='-ON WRIST-')
         ],
         [sg.Text('Chart Type:'), sg.Combo(chart_types, key='-CHART TYPE-', default_value='plot')],
-        [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],
+        # [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value='UTC', key='-TIMEZONE-')],
+        # [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value=selected_timezone, key='-TIMEZONE-', enable_events=True, readonly=True, textvariable=selected_timezone_var)],
+        [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value=selected_timezone, key='-TIMEZONE-', enable_events=True)],
+
         [sg.Button('Show Graph'), sg.Button('Show Statistics'), sg.Button('Open Time Box')], 
         [sg.Canvas(key='-CANVAS-')],
         [sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
@@ -319,9 +327,10 @@ def main():
 
         if event == '-TIMEZONE-':
             selected_timezone = values['-TIMEZONE-']
-            if fig is not None:
+            # selected_timezone_var.set(selected_timezone)  # Update the displayed timezone
+            if df is not None:
                 df = convert_to_local_time(df, selected_timezone)
-                update_x_axis_labels(fig, selected_timezone)  # Call the function here
+
 
 
         if event == 'Show Graph':
@@ -329,6 +338,10 @@ def main():
             start_date = values['-STARTDATE-']
             end_date = values['-ENDDATE-']
             selected_option = values['-OPTION-']
+            if df is not None:
+                # Perform DataFrame operations on df
+                df = convert_to_local_time(df, selected_timezone)
+            
 
             if (selected_date or (start_date and end_date)) and selected_option:
                 if start_date and end_date:
@@ -338,6 +351,7 @@ def main():
                         draw_figure(window['-CANVAS-'].TKCanvas, fig)
                     else:
                         sg.popup('No data available for the selected date range.')
+               
                 elif selected_date:
                     file_location = generate_file_location(selected_date, selected_option)
                     fig = plot_data(file_location, values, values['-CHART TYPE-'], selected_timezone)
