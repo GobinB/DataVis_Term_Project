@@ -168,7 +168,9 @@ class DataHandler:
         return self.convert_to_local_time(df, timezone)
 
 # Function to show statistics window
-def show_statistics(df):
+def show_statistics(df, timezone):   
+    df = convert_to_local_time(df, timezone)    #ensuring statistics is correctly showing selcted time
+
     # Here, calculate statistical summaries
     stats_summary = df.describe()
     data_for_table = stats_summary.reset_index().values.tolist()
@@ -189,7 +191,10 @@ def show_statistics(df):
 
     stats_window.close()
 
-def show_raw_data(df):
+def show_raw_data(df, timezone): #ensuring time box is correctly showing selcted time
+    df = convert_to_local_time(df, timezone)
+
+
     data_for_table = df.values.tolist()
     headings = list(df.columns)
 
@@ -388,27 +393,26 @@ def main():
         if event == 'Show Statistics':
             selected_date = values['-DATE-']
             selected_option = values['-OPTION-']
+            selected_timezone = values['-TIMEZONE-']
 
             if selected_date and selected_option:
                 file_location = generate_file_location(selected_date, selected_option)
                 try:
                     df = pd.read_csv(file_location)
-                    df = convert_to_local_time(df, values['-TIMEZONE-'])
-                    show_statistics(df)
+                    show_statistics(df, selected_timezone)
                 except FileNotFoundError:
                     sg.popup(f"No data found for {selected_date}")
-
 
         if event == 'Open Time Box':
             selected_date = values['-DATE-']
             selected_option = values['-OPTION-']
+            selected_timezone = values['-TIMEZONE-']
 
             if selected_date and selected_option:
                 file_location = generate_file_location(selected_date, selected_option)
                 try:
                     df = pd.read_csv(file_location)
-                    df = convert_to_local_time(df, values['-TIMEZONE-'])
-                    show_raw_data(df)
+                    show_raw_data(df, selected_timezone)
                 except FileNotFoundError:
                     sg.popup(f"No data found for {selected_date}")
 
