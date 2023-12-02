@@ -6,6 +6,8 @@ matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.dates as mdates
+from datetime import datetime  # Add this import
+
 import numpy as np
 import math
 from tkinter import ttk  
@@ -16,15 +18,25 @@ BASE_DIRECTORY = 'Dataset'
 BACKGROUND_COLOR = '#AAB6D3'
 CHART_TYPES = ['plot', 'scatter', 'bar']
 TIMEZONES = ['UTC', 'US/Eastern', 'Europe/London']  # Add more timezones as needed
+selected_timezone = 'UTC'
 
 # Function to convert UTC to local time
-def convert_to_local_time(df, timezone='UTC'):
+
+def convert_to_local_time(df, timezone):
     df['Datetime (UTC)'] = pd.to_datetime(df['Datetime (UTC)'])
     df = df.set_index('Datetime (UTC)')
     if timezone != 'UTC':
-        df.index = df.index.tz_convert(timezone)
+        selected_tz = pytz.timezone(timezone)
+        df.index = df.index.tz_localize('UTC').tz_convert(selected_tz)
     return df.reset_index()
 
+def update_x_axis_labels(fig, timezone):
+    for ax in fig.axes:
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
+        ax.xaxis.get_major_formatter().set_tzinfo(timezone)
+        ax.figure.canvas.draw_idle()
+
+        
 def generate_file_location(date, option):
     base_directory = 'Dataset'
     formatted_date = date.replace('-', '')
@@ -118,6 +130,11 @@ def plot_data(file_location, columns, chart_type, timezone):
             ax.set_ylabel(attr)
             ax.legend()
 
+    # Update the DateFormatter for x-axis
+    x_axis_format = mdates.DateFormatter('%Y-%m-%d %H:%M')
+    for ax in fig.axes:
+        ax.xaxis.set_major_formatter(x_axis_format)
+
     for ax in axs:
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
 
@@ -210,12 +227,17 @@ def reset_zoom(ax, original_xlim, original_ylim):
     ax.set_xlim(original_xlim)
     ax.set_ylim(original_ylim)
 
+def update_x_axis_labels(fig, timezone):
+    for ax in fig.axes:
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M', tz=timezone))
+        ax.figure.canvas.draw_idle()
 
 def main():
     sg.theme('LightBlue2')
     chart_types = ['plot', 'scatter', 'bar']
     date_combobox_choices = ['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21']
     option_combobox_choices = ['310', '311', '312']
+    selected_timezone = 'UTC'  # Initialize with a default value
 
     layout = [
         [sg.Text('Welcome')],
@@ -254,7 +276,8 @@ def main():
 
 
     window = sg.Window('Data Analysis App', layout)
-    current_timezone = 'UTC'  # Default time zone
+    current_timezone = 'sdd'  # Default time zone
+
 
     # Define initial zoom level and current axis limits
     original_xlim = None
@@ -274,6 +297,14 @@ def main():
             window['-ENDDATE-'].update(disabled=not enable_range)
             window['-ENDDATE-BTN-'].update(disabled=not enable_range)
             window['-DATE-'].update(disabled=enable_range)
+            
+
+        if event == '-TIMEZONE-':
+            selected_timezone = values['-TIMEZONE-']
+            if fig is not None:
+                df = convert_to_local_time(df, selected_timezone)
+                update_x_axis_labels(fig, selected_timezone)  # Call the function here
+
 
         if event == 'Show Graph':
             selected_date = values['-DATE-']
@@ -283,20 +314,22 @@ def main():
 
             if (selected_date or (start_date and end_date)) and selected_option:
                 if start_date and end_date:
-                    aggregated_data = aggregate_data_from_range(start_date, end_date, selected_option, current_timezone)
+                    aggregated_data = aggregate_data_from_range(start_date, end_date, selected_option, selected_timezone)
                     if aggregated_data is not None:
-                        fig = plot_data(generate_file_location(start_date, selected_option), values, values['-CHART TYPE-'], current_timezone)
+                        fig = plot_data(generate_file_location(start_date, selected_option), values, values['-CHART TYPE-'], selected_timezone)
                         draw_figure(window['-CANVAS-'].TKCanvas, fig)
                     else:
                         sg.popup('No data available for the selected date range.')
                 elif selected_date:
                     file_location = generate_file_location(selected_date, selected_option)
-                    fig = plot_data(file_location, values, values['-CHART TYPE-'], current_timezone)
+                    fig = plot_data(file_location, values, values['-CHART TYPE-'], selected_timezone)
                     if fig is not None:
                         draw_figure(window['-CANVAS-'].TKCanvas, fig)
                     else:
                         sg.popup(f'No data found for the selected date: {selected_date}')
-
+                        
+            # Display the selected timezone
+            sg.popup(f'Selected Timezone: {selected_timezone}')
             if fig is not None:
                 original_xlim = [ax.get_xlim() for ax in fig.axes]
                 original_ylim = [ax.get_ylim() for ax in fig.axes]
