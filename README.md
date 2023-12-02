@@ -1,13 +1,10 @@
 # DataVis_Term_Project
 
 
-work on disable 311. -- next 
 
-maybe the selection of thins better (green check marks).
+maybe the selection of thins better (green check marks). -- for final
 
-
-add scroll in graph. -- currently working ahmed
-
+add more charts for final 
 
 
 
