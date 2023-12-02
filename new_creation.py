@@ -64,6 +64,21 @@ def draw_figure(canvas, figure, loc=(0, 0)):
     widget.update_idletasks()
 
     # Calculate the figure size in pixels, which is needed for the scrollregion
+    dpi = figure.get_dpi()
+    fig_width, fig_height = figure.get_size_inches()
+    scrollregion = (0, 0, fig_width * dpi, fig_height * dpi)
+
+    # Set the scroll region to the size of the figure in pixels
+    canvas.configure(scrollregion=scrollregion)
+
+    # Create scrollbars and attach them to the figure canvas
+    vscrollbar = ttk.Scrollbar(canvas, orient='vertical', command=widget.yview)
+    vscrollbar.pack(side='right', fill='y')
+    widget.configure(yscrollcommand=vscrollbar.set)
+
+    hscrollbar = ttk.Scrollbar(canvas, orient='horizontal', command=widget.xview)
+    hscrollbar.pack(side='bottom', fill='x')
+    widget.configure(xscrollcommand=hscrollbar.set)
 
     canvas.figure_agg = figure_canvas_agg
 
@@ -259,25 +274,9 @@ def main():
     option_combobox_choices = ['310', '311', '312']
     selected_timezone = 'US/Eastern'  
     df = None  # Initialize df as None
-    canvas_width = 800  # Adjust these values according to your graph's dimensions
-    canvas_height = 500
-    scroll_range = 0
 
-    canvas_layout = [
-            [sg.Canvas(key='-CANVAS-', size=(canvas_width, canvas_height))],
-            [sg.Button('Pan Left'), sg.Button('Pan Right'), sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
-        ]
-    # Create a frame for the canvas and other elements
-    canvas_frame = sg.Frame('Plot', layout=canvas_layout, title_color='blue')
-
-
-    # Create a slider to enable vertical scrolling
-    #scroll_slider = sg.Slider(range=(0, 1000), default_value=500, orientation='vertical', size=(15, 15), key='-SCROLL-')
-
-    # Create a column to hold the canvas frame and the slider
-    column_layout = [
-        [canvas_frame]
-    ]
+    # Initialize with a default value
+    # selected_timezone_var = sg.StringVar(value=selected_timezone)
 
     layout = [
         [sg.Text('Welcome')],
@@ -312,9 +311,8 @@ def main():
         [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value=selected_timezone, key='-TIMEZONE-', enable_events=True)],
 
         [sg.Button('Show Graph'), sg.Button('Show Statistics'), sg.Button('Open Time Box')], 
-        # [sg.Canvas(key='-CANVAS-')],
-        [sg.Column(column_layout, size=(1100, 650))]
-        
+        [sg.Canvas(key='-CANVAS-')],
+        [sg.Button('Pan Left'), sg.Button('Pan Right'), sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
 
     ]
 
@@ -352,10 +350,6 @@ def main():
 
 
         if event == 'Show Graph':
-            canvas_width = 1000
-            canvas_height = 800
-            window['-CANVAS-'].Widget.config(scrollregion=(0, 0, canvas_width, canvas_height))
-            scroll_range = canvas_height
             selected_date = values['-DATE-']
             start_date = values['-STARTDATE-']
             end_date = values['-ENDDATE-']
