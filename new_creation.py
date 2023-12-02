@@ -1,6 +1,7 @@
 import PySimpleGUI as sg
 import pandas as pd
 import matplotlib
+import pytz
 matplotlib.use("TkAgg")
 
 import matplotlib.pyplot as plt
@@ -167,27 +168,44 @@ class DataHandler:
 
 # Function to show statistics window
 def show_statistics(df):
-    # Convert the descriptive statistics into a list of lists, suitable for the Table Element
-    data_for_table = df.describe().reset_index().values.tolist()
-    headings = [''] + list(df.describe().columns)  # Add an empty string for the index column header
+    # Here, calculate statistical summaries
+    stats_summary = df.describe()
+    data_for_table = stats_summary.reset_index().values.tolist()
+    headings = [''] + list(stats_summary.columns)
 
-    # Define the layout for the new window
     layout = [
         [sg.Table(values=data_for_table, headings=headings, max_col_width=25,
                   auto_size_columns=True, display_row_numbers=True, justification='right', num_rows=10, key='-TABLE-',
-                  row_height=35, tooltip='This is a table')],
+                  row_height=35, tooltip='Statistical Summaries')],
     ]
 
-    # Create a new window to display the statistics
-    stats_window = sg.Window('Time Box', layout, modal=True)
+    stats_window = sg.Window('Statistics Summary', layout, modal=True)
 
-    # Event loop for the new window
     while True:
         event, values = stats_window.read()
         if event == sg.WINDOW_CLOSED:
             break
 
     stats_window.close()
+
+def show_raw_data(df):
+    data_for_table = df.values.tolist()
+    headings = list(df.columns)
+
+    layout = [
+        [sg.Table(values=data_for_table, headings=headings, max_col_width=35,
+                  auto_size_columns=True, display_row_numbers=True, justification='right', num_rows=10, key='-RAW-TABLE-',
+                  row_height=25, tooltip='Raw Data')],
+    ]
+
+    raw_data_window = sg.Window('Raw Data View', layout, modal=True)
+
+    while True:
+        event, values = raw_data_window.read()
+        if event == sg.WINDOW_CLOSED:
+            break
+
+    raw_data_window.close()
 
 
 def get_date_range(start_date, end_date):
@@ -359,9 +377,12 @@ def main():
 
             if selected_date and selected_option:
                 file_location = generate_file_location(selected_date, selected_option)
-                df = pd.read_csv(file_location)
-                df = convert_to_local_time(df, values['-TIMEZONE-'])  # Convert to selected timezone
-                show_statistics(df)
+                try:
+                    df = pd.read_csv(file_location)
+                    df = convert_to_local_time(df, values['-TIMEZONE-'])
+                    show_statistics(df)
+                except FileNotFoundError:
+                    sg.popup(f"No data found for {selected_date}")
 
 
         if event == 'Open Time Box':
@@ -373,9 +394,9 @@ def main():
                 try:
                     df = pd.read_csv(file_location)
                     df = convert_to_local_time(df, values['-TIMEZONE-'])
-                    show_statistics(df)  # This function will show the statistics in a table format as a separate window
+                    show_raw_data(df)
                 except FileNotFoundError:
-                    sg.popup(f"No data found for the selected date: {selected_date}")
+                    sg.popup(f"No data found for {selected_date}")
 
     window.close()
 
