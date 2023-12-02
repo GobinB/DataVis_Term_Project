@@ -64,21 +64,6 @@ def draw_figure(canvas, figure, loc=(0, 0)):
     widget.update_idletasks()
 
     # Calculate the figure size in pixels, which is needed for the scrollregion
-    dpi = figure.get_dpi()
-    fig_width, fig_height = figure.get_size_inches()
-    scrollregion = (0, 0, fig_width * dpi, fig_height * dpi)
-
-    # Set the scroll region to the size of the figure in pixels
-    canvas.configure(scrollregion=scrollregion)
-
-    # Create scrollbars and attach them to the figure canvas
-    vscrollbar = ttk.Scrollbar(canvas, orient='vertical', command=widget.yview)
-    vscrollbar.pack(side='right', fill='y')
-    widget.configure(yscrollcommand=vscrollbar.set)
-
-    hscrollbar = ttk.Scrollbar(canvas, orient='horizontal', command=widget.xview)
-    hscrollbar.pack(side='bottom', fill='x')
-    widget.configure(xscrollcommand=hscrollbar.set)
 
     canvas.figure_agg = figure_canvas_agg
 
@@ -275,8 +260,6 @@ def main():
     selected_timezone = 'US/Eastern'  
     df = None  # Initialize df as None
 
-    # Initialize with a default value
-    # selected_timezone_var = sg.StringVar(value=selected_timezone)
     canvas_layout = [
             [sg.Canvas(key='-CANVAS-')],
             [sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
@@ -285,12 +268,13 @@ def main():
     canvas_frame = sg.Frame('Plot', layout=canvas_layout, title_color='blue')
 
     # Create a slider to enable vertical scrolling
-    scroll_slider = sg.Slider(range=(100, 0), default_value=0, orientation='v', size=(15, 15), key='-SCROLL-')
+    scroll_slider = sg.Slider(range=(-100, 100), default_value=0, orientation='v', size=(15, 15), key='-SCROLL-')
 
     # Create a column to hold the canvas frame and the slider
     column_layout = [
         [canvas_frame, scroll_slider]
     ]
+
     layout = [
         [sg.Text('Welcome')],
         [
@@ -326,8 +310,7 @@ def main():
         [sg.Button('Show Graph'), sg.Button('Show Statistics'), sg.Button('Open Time Box')], 
         # [sg.Canvas(key='-CANVAS-')],
         [sg.Column(column_layout, size=(900, 750), scrollable=True)],
-
-        [sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
+        [sg.Button('Pan Left'), sg.Button('Pan Right'), sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
 
     ]
 
