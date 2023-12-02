@@ -277,7 +277,20 @@ def main():
 
     # Initialize with a default value
     # selected_timezone_var = sg.StringVar(value=selected_timezone)
+    canvas_layout = [
+            [sg.Canvas(key='-CANVAS-')],
+            [sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
+        ]
+    # Create a frame for the canvas and other elements
+    canvas_frame = sg.Frame('Plot', layout=canvas_layout, title_color='blue')
 
+    # Create a slider to enable vertical scrolling
+    scroll_slider = sg.Slider(range=(100, 0), default_value=0, orientation='v', size=(15, 15), key='-SCROLL-')
+
+    # Create a column to hold the canvas frame and the slider
+    column_layout = [
+        [canvas_frame, scroll_slider]
+    ]
     layout = [
         [sg.Text('Welcome')],
         [
@@ -311,8 +324,10 @@ def main():
         [sg.Text('Select Timezone:'), sg.Combo(TIMEZONES, default_value=selected_timezone, key='-TIMEZONE-', enable_events=True)],
 
         [sg.Button('Show Graph'), sg.Button('Show Statistics'), sg.Button('Open Time Box')], 
-        [sg.Canvas(key='-CANVAS-')],
-        [sg.Button('Pan Left'), sg.Button('Pan Right'), sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
+        # [sg.Canvas(key='-CANVAS-')],
+        [sg.Column(column_layout, size=(900, 750), scrollable=True)],
+
+        [sg.Button('Zoom In'), sg.Button('Zoom Out'), sg.Button('Reset Zoom')]
 
     ]
 
