@@ -1,3 +1,4 @@
+# Group Project by Gobin, Ahmed, Ryo  -- 12/1/2023
 import PySimpleGUI as sg
 import pandas as pd
 import matplotlib
@@ -49,7 +50,7 @@ def draw_figure(canvas, figure, loc=(0, 0)):
     if hasattr(canvas, 'figure_agg'):
         canvas.figure_agg.get_tk_widget().forget()
         plt.close(canvas.figure_agg.figure)
-        # Remove the old scrollbars
+        # Removing the old scrollbars
         for child in canvas.winfo_children():
             if isinstance(child, ttk.Scrollbar):
                 child.destroy()
@@ -91,7 +92,6 @@ def plot_data(file_location, columns, chart_type, timezone):
 
     df = convert_to_local_time(df, timezone)
 
-    # Assuming you want to plot these attributes based on checkbox selections
     attributes_to_plot = [
         ('Acc magnitude avg', columns['-ACC-']),
         ('Eda avg', columns['-EDA-']),
@@ -112,9 +112,9 @@ def plot_data(file_location, columns, chart_type, timezone):
     fig, axs = plt.subplots(num_attributes, 1, figsize=(15, 3 * num_rows), sharex=False)
 
     if num_attributes == 1:
-        axs = np.array([axs])  # Make sure axs is always a numpy array, even for a single subplot
+        axs = np.array([axs])  # axs is always a numpy array
 
-    current_subplot = 0  # Track the current subplot index
+    current_subplot = 0  # Tracking the current subplot index
 
     for i, (attr, is_checked) in enumerate(attributes_to_plot):
         if is_checked:
@@ -139,7 +139,6 @@ def plot_data(file_location, columns, chart_type, timezone):
     for ax in axs:
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d %H:%M'))
 
-    # Remove unused subplots
     for i in range(current_subplot, num_attributes):
         fig.delaxes(axs[i])
 
@@ -171,7 +170,7 @@ class DataHandler:
 def show_statistics(df, timezone):   
     df = convert_to_local_time(df, timezone)    #ensuring statistics is correctly showing selcted time
 
-    # Here, calculate statistical summaries
+    # statistical summaries
     stats_summary = df.describe()
     data_for_table = stats_summary.reset_index().values.tolist()
     headings = [''] + list(stats_summary.columns)
@@ -236,7 +235,7 @@ def aggregate_data_from_range(start_date, end_date, selected_option, timezone):
     return pd.concat(data_frames) if data_frames else None
 
 def zoom_axis(ax, zoom_factor):
-    # Calculate the new x and y axis ranges based on the zoom factor
+    # new x and y axis ranges based on the zoom factor
     x_min, x_max = ax.get_xlim()
     x_range = ((x_max - x_min) / 2) * zoom_factor
     y_min, y_max = ax.get_ylim()
@@ -321,7 +320,7 @@ def main():
     current_timezone = 'sdd'  # Default time zone
 
 
-    # Define initial zoom level and current axis limits
+    # initial zoom level and current axis limits
     original_xlim = None
     original_ylim = None
     zoom_level = 1.0
@@ -372,7 +371,7 @@ def main():
                     file_location = generate_file_location(selected_date, selected_option)
                     fig = plot_data(file_location, values, values['-CHART TYPE-'], selected_timezone)
                     if fig is not None:
-                        # Store the original axis limits
+                        # original axis limits
                         original_xlim = [ax.get_xlim() for ax in fig.axes]
                         original_ylim = [ax.get_ylim() for ax in fig.axes]
 
