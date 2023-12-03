@@ -18,7 +18,7 @@ from tkinter import ttk
 # Constants
 BASE_DIRECTORY = 'Dataset'
 BACKGROUND_COLOR = '#AAB6D3'
-CHART_TYPES = ['plot', 'scatter', 'bar']
+CHART_TYPES = ['plot', 'scatter', 'bar', 'histogram', 'boxplot']
 TIMEZONES = ['UTC', 'US/Eastern', 'Europe/London']  # Add more timezones as needed
 selected_timezone = 'UTC'
 
@@ -116,6 +116,7 @@ def plot_data(file_location, columns, chart_type, timezone):
 
     current_subplot = 0  # Tracking the current subplot index
 
+    # New chart type handling
     for i, (attr, is_checked) in enumerate(attributes_to_plot):
         if is_checked:
             ax = axs[current_subplot]
@@ -127,6 +128,10 @@ def plot_data(file_location, columns, chart_type, timezone):
                 ax.scatter(df['Datetime (UTC)'], df[attr], label=attr)
             elif chart_type == 'bar':
                 ax.bar(df['Datetime (UTC)'], df[attr], label=attr)
+            elif chart_type == 'histogram':
+                ax.hist(df[attr], bins=20, label=attr)  # Example histogram
+            elif chart_type == 'boxplot':
+                ax.boxplot(df[attr], vert=False, labels=[attr])  # Example boxplot
 
             ax.set_ylabel(attr)
             ax.legend()
@@ -268,7 +273,7 @@ def pan_right(ax, pan_factor=0.1):
 
 def main():
     sg.theme('LightBlue2')
-    chart_types = ['plot', 'scatter', 'bar']
+    chart_types = ['plot', 'scatter', 'bar', 'histogram', 'boxplot']
     date_combobox_choices = ['2020-01-18', '2020-01-19', '2020-01-20', '2020-01-21']
     option_combobox_choices = ['310', '311', '312']
     selected_timezone = 'US/Eastern'  
